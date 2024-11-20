@@ -19,7 +19,18 @@ if (isset($_GET['funcion'])) {
 }
 
 function obtenerProductos() {
-    global $database;
-    $productos = $database->select('productos', ['codigo','nombre','precioventa','costo']);
-    echo json_encode($productos);
+    global $db;
+
+    try {
+        $sql = "SELECT codigo, nombre, precioventa, costo FROM productos";
+        $productos = $db->GetArray($sql);
+
+        if (count($productos) > 0) {
+            echo json_encode($productos);
+        } else {
+            echo json_encode(["mensaje" => "No se encontraron productos"]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(["error" => "Error al obtener los productos: " . $e->getMessage()]);
+    }
 }

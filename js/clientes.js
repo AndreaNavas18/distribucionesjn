@@ -1,6 +1,15 @@
 const SERVER = 'http://localhost/distribucionesjn/';
 
-(function crearClientes() {
+document.addEventListener("DOMContentLoaded", function() {
+    const vista = document.body.id;
+    if (vista === "crearCliente") {
+        crearClientes();
+    } else if (vista === "verClientes") {
+        obtenerClientes();
+    }
+});
+
+function crearClientes() {
     const form = document.getElementById("formCliente");
     
     if (form) { 
@@ -32,9 +41,9 @@ const SERVER = 'http://localhost/distribucionesjn/';
             .catch(error => console.error("Error en la solicitud:", error));
         });
     }
-})();
+}
 
-(function obtenerClientes() {
+function obtenerClientes() {
     fetch(SERVER + "controladores/clientes.php", {
         method: "POST",
         body: JSON.stringify({ funcion: "obtenerclientes" })
@@ -62,4 +71,4 @@ const SERVER = 'http://localhost/distribucionesjn/';
         }
     })
     .catch(error => console.error("Error en la solicitud:", error));
-})();
+}

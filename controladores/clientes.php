@@ -6,7 +6,6 @@ header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json');
 
-// echo json_encode(["debug" => $_POST]);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
@@ -37,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 function crearCliente($params) {
-    global $database;
+    global $db;
 
     $nombre = $params['nombre'] != "" ? strtoupper($params['nombre']) : null;
     $razonsocial = $params['razonsocial'] != "" ? strtoupper($params['razonsocial']) : null;
@@ -45,26 +44,30 @@ function crearCliente($params) {
     $telefono = $params['telefono'] != "" ? $params['telefono'] : null;
 
     try {
-        $database->insert('clientes', [
-            'nombre' => $nombre,
-            'razonsocial' => $razonsocial,
-            'ubicacion' => $ubicacion,
-            'telefono' => $telefono
-        ]);
-        echo json_encode(["mensaje" => "Cliente creado con exito"]);
+        $sql = "INSERT INTO clientes (nombre, razonsocial, ubicacion, telefono)
+                VALUES (?, ?, ?, ?)";
+        $result = $db->Execute($sql, [$nombre, $razonsocial, $ubicacion, $telefono]);
+        if ($result) {
+            echo json_encode(["mensaje" => "Cliente creado con éxito"]);
+        } else {
+            echo json_encode(["error" => "No se pudo insertar el cliente"]);
+        }
     } catch (PDOException $e) {
         echo json_encode(["error" => "Error en la consulta: " . $e->getMessage()]);
     }
 }
 
 function obtenerClientes() {
-    global $database;
+    global $db;
     try {
-        $clientes = $database->select('clientes', ['id','nombre','razonsocial','ubicacion','telefono']);
-        if (count($clientes) > 0) {
+        $sql = "SELECT id, nombre, razonsocial, ubicacion, telefono FROM clientes";
+        $result = $db->Execute($sql);
+
+        if ($result) {
+            $clientes = $result->GetArray();
             echo json_encode($clientes);
         } else {
-            echo json_encode(["mensaje" => "No se encontraron clientes"]);
+            echo json_encode(["error" => "No se encontraron clientes"]);
         }
     } catch (PDOException $e) {
         echo json_encode(["error" => "Error al obtener los clientes: " . $e->getMessage()]);

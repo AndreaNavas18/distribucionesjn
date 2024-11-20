@@ -33,32 +33,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 function obtenerProductos() {
-    global $database;
+    global $db;
+
     try {
-        $productos = $database->select('productos', ['id','nombre','precioventa','costo']);
+        $sql = "SELECT id, nombre, precioventa, costo FROM productos";
+        $productos = $db->GetArray($sql);
+
         if (count($productos) > 0) {
             echo json_encode($productos);
         } else {
             echo json_encode(["mensaje" => "No se encontraron productos"]);
         }
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         echo json_encode(["error" => "Error al obtener los productos: " . $e->getMessage()]);
     }
 }
 
 function buscarProductos($query) {
-    global $database;
+    global $db;
 
-    if (empty($query)) {
-        $productos = $database->select('productos', ['id', 'nombre']);
-    } else {
-        $query = strtoupper($query);
-        $productos = $database->select('productos', ['id','nombre'], ['nombre[~]' => $query]);
-    }
+    try {
+        if (empty($query)) {
+            $sql = "SELECT id, nombre FROM productos";
+            $productos = $db->GetArray($sql);
+        } else {
+            $query = strtoupper($query);
+            $sql = "SELECT id, nombre FROM productos WHERE UPPER(nombre) LIKE ?";
+            $productos = $db->GetArray($sql, ["%$query%"]);
+        }
 
-    if (count($productos) > 0) {
-        echo json_encode($productos);
-    } else {
-        echo json_encode(["mensaje" => "No se encontraron productos"]);
+        if (count($productos) > 0) {
+            echo json_encode($productos);
+        } else {
+            echo json_encode(["mensaje" => "No se encontraron productos"]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(["error" => "Error al buscar productos: " . $e->getMessage()]);
     }
 }

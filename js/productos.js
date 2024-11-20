@@ -1,6 +1,15 @@
 const SERVER = 'http://localhost/distribucionesjn/';
 
-(function verProductos() {
+document.addEventListener("DOMContentLoaded", function() {
+    const vista = document.body.id;
+    if (vista === "verProductos") {
+        verProductos();
+    } else if (vista === "index") {
+        importarProductos();
+    }
+});
+
+function verProductos() {
     fetch(SERVER + "controladores/productos.php", {
         method: "POST",
         body: JSON.stringify({ funcion: "obtenerproductos" })
@@ -26,9 +35,9 @@ const SERVER = 'http://localhost/distribucionesjn/';
         }
     })
     .catch(error => console.error("Error en la solicitud:", error));
-})();
+}
 
-(function importarProductos() {
+function importarProductos() {
     
     document.getElementById("uploadButton").addEventListener("click", function () {
         const fileInput = document.getElementById("excel_file");
@@ -59,4 +68,4 @@ const SERVER = 'http://localhost/distribucionesjn/';
         });
     });
     
-})();
+}

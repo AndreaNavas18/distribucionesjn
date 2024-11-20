@@ -34,11 +34,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
             case 'verordencompra':
-                $ordenCompra = verOrdenCompra();
-                if ($ordenCompra != false) {
-                    $response["orden"] = $ordenCompra;
-                } else {
-                    $response["error"] = "No se encontraron pedidos";
+                if (isset($data['datosForm'])) {
+                    $aForm = $data['datosForm'];
+                    $ordenCompra = verOrdenCompra($aForm);
+                    if ($ordenCompra) {
+                        $response["orden"] = $ordenCompra;
+                    } else {
+                        $response["error"] = "No se encontraron pedidos";
+                    }
+                    
                 }
             break;
 
@@ -57,82 +61,131 @@ echo json_encode($response);
 
 
 function guardarPedido($productos, $cliente, $observacion) {
-    global $database;
+    global $db;
     $r = false;
     $total = 0;
-    foreach ($productos as $producto) {
-        $idProducto = $producto['id'];
-        $cantidad = $producto['cantidad'];
-        $precio = $database->select("productos", ["id", "precioventa"], ["id" => $idProducto]);
-        $subtotal = $cantidad * $precio[0]['precioventa'];
-        $total += $subtotal;
-    }
-
+   
     try {
-        $database->pdo->beginTransaction();
-
-        $database->insert("pedidos", [
-            "fecha" => date("Y-m-d"),
-            "total" => $total,
-            "idcliente" => $cliente,
-            "observacion" => $observacion
-        ]);
-
-        $pedidoFinal = $database->id();
-
-        if (!$pedidoFinal) {
-            $database->pdo->rollBack();
-            return false;
-        }
-    
         foreach ($productos as $producto) {
             $idProducto = $producto['id'];
             $cantidad = $producto['cantidad'];
 
-            $database->insert("detallepedidos", [
-                "idpedido" => $pedidoFinal,
-                "idproducto" => $idProducto,
-                "cantidad" => $cantidad,
-                "estado" => 'inicial'
-            ]);
+            $sql = "SELECT precioventa FROM productos WHERE id = ?";
+            $precioResult = $db->GetRow($sql, [$idProducto]);
 
-            $detalleFinal = $database->id();
-            if (!$detalleFinal) {
-                $database->pdo->rollBack();
-                $r = false;
-                echo json_encode(["error" => "Error al guardar el detalle del pedido " . $detalleFinal]);
-                return false;
+            if (!$precioResult) {
+                throw new Exception("Producto no encontrado: $idProducto");
             }
+
+            $precio = $precioResult['precioventa'];
+            $subtotal = $cantidad * $precio;
+            $total += $subtotal;
         }
-        $database->pdo->commit();
+
+        $db->StartTrans();
+
+        $sqlPedido = "INSERT INTO pedidos (fecha, total, idcliente, observacion) VALUES (CURRENT_DATE, ?, ?, ?)";
+        $db->Execute($sqlPedido, [$total, $cliente, $observacion]);
+
+        $pedidoFinal = $db->Insert_ID();
+        if (!$pedidoFinal) {
+            throw new Exception("No se pudo guardar el pedido.");
+        }
+
+        foreach ($productos as $producto) {
+            $idProducto = $producto['id'];
+            $cantidad = $producto['cantidad'];
+
+            $sqlDetalle = "INSERT INTO detallepedidos (idpedido, idproducto, cantidad, estado) VALUES (?, ?, ?, ?)";
+            $db->Execute($sqlDetalle, [$pedidoFinal, $idProducto, $cantidad, 'inicial']);
+        }
+
+        $db->CompleteTrans();
         $r = true;
-    } catch (\Throwable $th) {
-        $database->pdo->rollBack();
-        return false;
+
+    } catch (Exception $e) {
+        $db->FailTrans();
+        $db->CompleteTrans();
+
+        error_log("Error en guardarPedido: " . $e->getMessage());
+        $r = false;
     }
 
     return $r;
 }
 
-function obtenerPedidos(){
-    global $database;
-    $pedidos = $database->select("pedidos", "*", ["ORDER" => ["id" => "ASC"]]);
+function obtenerPedidos() {
+    global $db;
 
-    if (count($pedidos) > 0) {
-        foreach ($pedidos as $key => $pedido) {
-            $cliente = $database->select("clientes", ['nombre'], ["id" => $pedido["idcliente"]]);
-            $pedidos[$key]["cliente"] = $cliente[0]["nombre"];
+    try {
+        $sqlPedidos = "SELECT * FROM pedidos ORDER BY id ASC";
+        $pedidos = $db->GetArray($sqlPedidos);
+
+        if (count($pedidos) > 0) {
+            foreach ($pedidos as &$pedido) {
+                $sqlCliente = "SELECT nombre FROM clientes WHERE id = ?";
+                $cliente = $db->GetOne($sqlCliente, [$pedido['idcliente']]);
+                $pedido['cliente'] = $cliente;
+            }
+
+            return json_encode($pedidos);
+        } else {
+            return json_encode(["mensaje" => "No se encontraron pedidos."]);
         }
-        return json_encode($pedidos);
-    } else {
-        return false;
+
+    } catch (Exception $e) {
+        error_log("Error en obtenerPedidos: " . $e->getMessage());
+        return json_encode(["error" => "Error al obtener pedidos."]);
     }
 }
 
-function verOrdenCompra() {
-    global $database;
-    $pedidos = $database->select("pedidos", "*");
-    return 'hola';
-    
+function verOrdenCompra($aForm) {
+    global $db;
 
+    $fechaini = isset($aForm['fechaInicio']) ? $aForm['fechaInicio'] : null;
+    $fechafin = isset($aForm['fechaFin']) && $aForm['fechaFin'] !== "" ? $aForm['fechaFin'] : $fechaini;
+
+    if ($fechaini && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaini)) {
+        error_log("Fecha de inicio no válida: $fechaini");
+        return "Error: Fecha de inicio no es válida.";
+    }
+
+    if ($fechafin && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechafin)) {
+        error_log("Fecha de fin no válida: $fechafin");
+        return "Error: Fecha de fin no es válida.";
+    }
+
+    $ruta = isset($aForm['ruta']) && $aForm['ruta'] !== "elegir" ? (int)$aForm['ruta'] : null;
+    $proveedor = isset($aForm['proveedor']) && $aForm['proveedor'] !== "elegir" ? $aForm['proveedor'] : null;
+
+    try {
+        $sql = "SELECT pod.nombre, SUM(dep.cantidad) AS cantidad, pod.costo, pod.proveedor " .
+                "FROM productos pod " .
+                "INNER JOIN detallepedidos dep ON pod.id = dep.idproducto " .
+                "INNER JOIN pedidos ped ON dep.idpedido = ped.id " .
+                "INNER JOIN clientes cl ON ped.idcliente = cl.id " .
+                "WHERE ped.fecha BETWEEN ? AND ?";
+
+        $params = [$fechaini, $fechafin];
+
+        if ($ruta !== null) {
+            $sql .= " AND cl.ruta = ?";
+            $params[] = $ruta;
+        }
+
+        if ($proveedor !== null) {
+            $sql .= " AND pod.proveedor = ?";
+            $params[] = $proveedor;
+        }
+
+        $sql .= " GROUP BY pod.nombre, pod.costo, pod.proveedor";
+
+        $result = $db->GetArray($sql, $params);
+
+        return $result ? json_encode($result) : json_encode(["mensaje" => "No se encontraron resultados."]);
+
+    } catch (Exception $e) {
+        error_log("Error en verOrdenCompra: " . $e->getMessage());
+        return json_encode(["error" => "Error al obtener la orden de compra."]);
+    }
 }

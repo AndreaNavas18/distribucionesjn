@@ -270,16 +270,35 @@ function verOrdenCompra() {
         const form = document.getElementById("formFiltro");
         const formData = new FormData(form);
 
-        console.log(formData);
-        console.log(JSON.stringify({ funcion: "verordencompra", formData }));
+        const formDataObj = {};
+        formData.forEach((value, key) => {
+            formDataObj[key] = value;
+        });
 
         fetch(SERVER + "controladores/pedidos.php", {
             method: "POST",
-            body: JSON.stringify({ funcion: "verordencompra", formData })
+            body: JSON.stringify({ funcion: "verordencompra", datosForm: formDataObj })
         })
             .then(response => response.json())
             .then(data => {
-                console.log(data);
+                //creo dinamicamente la tabla con el objeto que me llega de cada producto y su cantidad
+                if(data.orden){
+                    const ordenArr = JSON.parse(data.orden); 
+                    const tablaOrdenCompra = document.getElementById("ordenesCompra");
+                    if(tablaOrdenCompra) {
+                        tablaOrdenCompra.innerHTML = "";
+                        for (const orden of ordenArr) {
+                            tablaOrdenCompra.innerHTML += `
+                            <tr>
+                                <td>${orden.nombre}</td>
+                                <td>${orden.cantidad}</td>
+                                <td>${orden.costo}</td>
+                                <td>${orden.proveedor}</td>
+                            </tr>
+                            `;
+                        }
+                    }
+                }
             })
             .catch(error => console.error("Error en la solicitud:", error));
     });

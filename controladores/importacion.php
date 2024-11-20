@@ -12,6 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
     try {
         $spreadsheet = IOFactory::load($inputFileName);
         $sheet = $spreadsheet->getActiveSheet();
+
+        $db->StartTrans();
         
         // Leer los datos de las filas
         foreach ($sheet->getRowIterator(2) as $row) {
@@ -31,19 +33,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
             $diezp = $productData[5];
             $proveedor = $productData[6];
 
-            $database->insert('productos', [
-                'nombre' => $nombre,
-                'precioventa' => $precio,
-                'costo' => $costo,
-                'p25' => $veintep,
-                'p15' => $quincep,
-                'p10' => $diezp,
-                'proveedor' => $proveedor
-            ]);
+            $sql = "INSERT INTO productos (nombre, precioventa, costo, p25, p15, p10, proveedor)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $params = [$nombre, $precio, $costo, $veintep, $quincep, $diezp, $proveedor];
+
+            // Ejecutar consulta
+            $db->Execute($sql, $params);
         }
+
+        $db->CompleteTrans();
         
         echo json_encode(["mensaje" => "Productos importados con éxito."]);
     } catch (Exception $e) {
+        $db->FailTrans();
+        $db->CompleteTrans();
         echo json_encode(["error" => "Error al leer el archivo: " . $e->getMessage()]);
     }
 }
