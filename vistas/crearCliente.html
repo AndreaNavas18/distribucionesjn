@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cliente</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body id="crearCliente">
+    <section class="ccContenedor">
+        <div>
+            <a href="../index.html">Volver</a>
+        </div>
+        <div>
+            <h1>Crear Cliente</h1>
+            <form id="formCliente" method="POST">
+                <label for="nombre">Nombre:</label>
+                <input type="text" name="nombre" id="nombre" required>
+                <label for="apellido">Razon social:</label>
+                <input type="text" name="razonsocial" id="razonsocial" >
+                <label for="direccion">Ubicacion:</label>
+                <input type="text" name="ubicacion" id="ubicacion" >
+                <label for="telefono">Teléfono:</label>
+                <input type="number" name="telefono" id="telefono" >
+                <button type="submit"> Crear Cliente</button>
+            </form>
+        </div>
+    </section>
+
+    <script type="module" src="../js/clientes.js"></script>
+</body>
+</html>

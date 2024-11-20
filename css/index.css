@@ -1,0 +1,68 @@
+.contenedorP {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.contenedorS {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+.contenedorP h1 {
+    font-size: 2em;
+    color: #00486c;
+}
+
+.contenedorS div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.contenedorS div a {
+    display: flex;
+    justify-content: center;
+    margin: 10px;
+    width: 200px;
+    padding: 10px;
+    border: 1px solid #013955;
+    border-radius: 5px;
+    background-color: #0d7fb8;
+    cursor: pointer;
+    text-decoration: none;
+}	
+
+.contenedorS div a h3 {
+    font-size: 20px;
+    color: white;
+}
+
+.contenedorS div div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px;
+    width: 200px;
+    padding: 10px;
+    border: 1px solid #013955;
+    border-radius: 5px;
+    background-color: #0d7fb8;
+    cursor: pointer;
+}
+
+.contenedorS div div form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.contenedorS div div form input{
+    text-align: center;
+    width: 80%;
+}

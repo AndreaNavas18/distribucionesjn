@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordenes de compra</title>
+</head>
+<body id="ordenCompra">
+    <section>
+        <div>
+            <a href="../index.html">Volver</a>
+        </div>
+        <h1>Ordenes de compra</h1>
+        <h2>Filtro</h2>
+        <form id="formFiltro">
+            <label for="fechaInicio">Fecha inicio</label>
+            <input type="date" name="fechaInicio" id="fechaInicio">
+            <label for="fechaFin">Fecha fin</label>
+            <input type="date" name="fechaFin" id="fechaFin">
+            <label for="slcRuta">Ruta</label>
+            <select name="ruta" id="slcRuta">
+                <option value="elegir">Elegir una ruta</option>
+                <option value="1">Ruta 1</option>
+                <option value="2">Ruta 2</option>
+            </select>
+            <label for="slcProveedor">Proveedor</label>
+            <select name="proveedor" id="slcProveedor">
+                <option value="elegir">Elegir un proveedor</option>
+            </select>
+            <button type="button" id="btnFiltrar">Filtrar</button>
+        </form>
+    </section>
+
+    <script src="../js/pedidos.js"></script>    
+</body>
+</html>

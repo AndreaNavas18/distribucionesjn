@@ -1,0 +1,6 @@
+{
+    "require": {
+        "catfan/medoo": "^2.1",
+        "phpoffice/phpspreadsheet": "^3.4"
+    }
+}

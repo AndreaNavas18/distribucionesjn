@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+<body>
+    <div class="contenedorP">
+        <h1>Qué quieres hacer hoy?</h1>
+        <div class="contenedorS">
+            <div>
+                <a href="./vistas/tomarPedido.html">
+                    <h3>Tomar pedido</h3>
+                </a>
+                <a href="./vistas/crearCliente.html">
+                    <h3>Crear cliente</h3>
+                </a>
+            </div>
+            <div>
+                <a href="./vistas/verProductos.html">
+                    <h3>Ver productos</h3>
+                </a>
+                <a href="./vistas/verClientes.html">
+                    <h3>Ver clientes</h3>
+                </a>
+            </div>
+            <div>
+                <a href="./vistas/historialPedidos.html">
+                    <h3>Ver historial pedidos</h3>
+                </a>
+                <a href="./vistas/ordenCompra.html">
+                    <h3>Ver orden de compra</h3>
+                </a>
+            </div>
+            <div>
+                <div>
+                    <form id="importFormProducto" enctype="multipart/form-data">
+                        <input type="file" id="excel_file" accept=".xlsx, .xls" />
+                        <button type="button" id="uploadButton">Importar Productos</button>
+                    </form>
+                </div>
+                <a>
+                    <h3>Importar clientes</h3>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/productos.js"></script>
+</body>
+</html>

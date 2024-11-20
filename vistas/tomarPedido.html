@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tomar Pedido</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+</head>
+<body id="tomarPedido">
+    <section>
+        <div>
+            <a href="../index.html">Volver</a>
+        </div>
+        <h1>Tomar Pedido</h1>
+        <form id="formPedido">
+            <label for="cliente">Cliente</label>
+            <select name="cliente" id="slcClientes">
+                <option value="elegir">Elegir un cliente</option>
+            </select>
+            <label for="producto">Producto</label>
+            <select name="producto" id="slcProductos" style="width: 100%;">
+                <option></option>
+            </select>
+            <label for="cantidad">Cantidad</label>
+            <input type="number" name="cantidad" id="cantidad">
+            <button type="button" id="btnAgregar">Agregar</button>
+        </form>
+        <table id="tablaPedido">
+            <thead>
+                <tr>
+                    <th>Cantidad</th>
+                    <th id="codigoProd">Codigo</th>
+                    <th>Producto</th>
+                    <th>Valor Unt.</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <label for="total">Total</label>
+        <input type="text" name="total" id="totalPedido" readonly>
+        <label for="observacion">Observaciones</label>
+        <textarea name="observacion" id="observacion" cols="30" rows="10"></textarea>
+        <button id="btnGuardarPedido">Guardar Pedido</button>
+    </section>
+    
+    <script src="../js/pedidos.js"></script>
+</body>
+</html>
