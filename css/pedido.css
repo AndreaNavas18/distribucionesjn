@@ -1,0 +1,25 @@
+:root {
+    --bg-general: #00486c;
+    --bg-claro: #0d7fb8;
+    --cl-general: #f0f0f0;
+}
+
+#tomarPedido {
+    margin: 0;
+}
+
+.cabecerax {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-general);
+}
+
+.cabecerax a{
+    text-decoration: none;
+    font-size: 20px;
+}
+
+.cabecerax a i {
+    color: var(--cl-general);
+    font-size: 60px;
+}

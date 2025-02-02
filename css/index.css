@@ -1,3 +1,9 @@
+:root {
+    --bg-general: #00486c;
+    --bg-claro: #0d7fb8;
+    --cl-general: #f0f0f0;
+}
+
 .contenedorP {
     display: flex;
     flex-direction: column;
@@ -15,7 +21,7 @@
 
 .contenedorP h1 {
     font-size: 2em;
-    color: #00486c;
+    color: var(--bg-general);
 }
 
 .contenedorS div {
@@ -30,16 +36,16 @@
     margin: 10px;
     width: 200px;
     padding: 10px;
-    border: 1px solid #013955;
+    border: 1px solid var(--bg-general);
     border-radius: 5px;
-    background-color: #0d7fb8;
+    background-color: var(--bg-claro);
     cursor: pointer;
     text-decoration: none;
 }	
 
 .contenedorS div a h3 {
     font-size: 20px;
-    color: white;
+    color: var(--cl-general);
 }
 
 .contenedorS div div {
@@ -49,9 +55,9 @@
     margin: 10px;
     width: 200px;
     padding: 10px;
-    border: 1px solid #013955;
+    border: 1px solid var(--bg-general);
     border-radius: 5px;
-    background-color: #0d7fb8;
+    background-color: var(--bg-claro);
     cursor: pointer;
 }
 
