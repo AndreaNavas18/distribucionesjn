@@ -8,18 +8,86 @@
     margin: 0;
 }
 
+.contenedorG {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+    width: 95%;
+}
+
 .cabecerax {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    padding: 10px;
     background-color: var(--bg-general);
 }
 
-.cabecerax a{
+.cabecerax a {
+    background-color: var(--bg-claro);
+    color: var(--cl-general);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
     text-decoration: none;
-    font-size: 20px;
 }
 
 .cabecerax a i {
     color: var(--cl-general);
-    font-size: 60px;
+    font-size: 20px;
+}
+
+.cabecerax button {
+    background-color: var(--bg-claro);
+    color: var(--cl-general);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.contenedorG h1 {
+    color: var(--bg-general);
+    font-size: 24px;
+    margin: 10px 0 30px 0;
+}
+
+#formPedido {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#formPedido div {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-self: space-between;
+}
+
+.select2-container .select2-selection--single {
+    height: 40px !important;
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+    font-size: 20px;
+    border-color: #dee2e6 !important;
+}
+
+
+#tablaPedido {
+    margin-top: 15px;
+}
+
+.subtitulos {
+    color: var(--bg-general);
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+.btndocena {
+    width: 100px;
+    height: 50px;
 }

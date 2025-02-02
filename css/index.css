@@ -4,11 +4,46 @@
     --cl-general: #f0f0f0;
 }
 
+#index {
+    margin: 0;
+}
+
+.headerHome {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 50px;
+    background-color: var(--bg-general);
+}
+
+.headerHome button {
+    background-color: var(--bg-claro);
+    color: var(--cl-general);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.imgDiv {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.logoimg {
+    width: 200px;
+    height: 50px;
+}
+
 .contenedorP {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    margin: 0 auto;
+    width: 95%;
 }
 
 .contenedorS {
@@ -28,6 +63,8 @@
     display: flex;
     flex-direction: row;
     justify-content: center;
+    width: 600px;
+    height: 200px;
 }
 
 .contenedorS div a {

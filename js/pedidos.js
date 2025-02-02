@@ -3,6 +3,7 @@ const SERVER = 'http://localhost/distribucionesjn/';
 document.addEventListener("DOMContentLoaded", function() {
     const vista = document.body.id;
     if (vista === "tomarPedido") {
+        console.log("Estoy en tomarPedido");
         listarProductos();
         obtenerClientes();
         agregarProducto();
@@ -95,9 +96,9 @@ function formatearMoneda(valor) {
     }).format(valor);
 }
 
-function agregarProducto() { 
-    document.addEventListener("DOMContentLoaded", function () {
+function agregarProducto() {
         const btnAgregar = document.getElementById("btnAgregar");
+        const btnCantidad = document.getElementById("btnCantidad");
         const selectProductos = document.getElementById("slcProductos");
         const inputCantidad = document.getElementById("cantidad");
         const tablaPedidoBody = document.querySelector("#tablaPedido tbody");
@@ -118,6 +119,7 @@ function agregarProducto() {
         .catch(error => console.error("Error en la solicitud:", error));
     
         btnAgregar.addEventListener("click", function () {
+            console.log("dentro de agregar producto, di click");
             const productoSeleccionado = selectProductos.options[selectProductos.selectedIndex];
             const cantidad = inputCantidad.value;
             
@@ -154,6 +156,7 @@ function agregarProducto() {
                 const celdaAcciones = document.createElement("td");
                 const botonEliminar = document.createElement("button");
                 botonEliminar.textContent = "Eliminar";
+                botonEliminar.classList.add("btn", "btn-danger");
                 botonEliminar.addEventListener("click", function () {
                     tablaPedidoBody.removeChild(fila);
                 });
@@ -178,11 +181,15 @@ function agregarProducto() {
                 alert("Por favor, seleccione un producto y una cantidad válida.");
             }
         });
-    });    
+
+        btnCantidad.addEventListener("click", function () {
+            //inserto un 12 en el input cantidad
+            inputCantidad.value = 12;
+        });
 }
 
 function guardarPedido() {
-    document.getElementById("btnGuardarPedido").addEventListener("click", function () {
+        const btnGuardar = document.getElementById("btnGuardarPedido");
         const tablaPedidoBody = document.querySelector("#tablaPedido tbody");
         const filas = tablaPedidoBody.querySelectorAll("tr");
         const cliente = document.getElementById("slcClientes").value;
@@ -199,40 +206,40 @@ function guardarPedido() {
                 cantidad: parseInt(cantidad, 10)
             });
         });
-    
-        if (productos.length > 0) {
-            if (!cliente || cliente === "elegir") {
-                alert("Por favor, seleccione un cliente.");
-                return;
-            } else {
-                fetch(SERVER + "controladores/pedidos.php", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        funcion: "guardarpedido",
-                        productos: productos,
-                        cliente: cliente,
-                        observacion: observacion
+
+        btnGuardar.addEventListener("click", function () {
+            if (productos.length > 0) {
+                if (!cliente || cliente === "elegir") {
+                    alert("Por favor, seleccione un cliente.");
+                    return;
+                } else {
+                    fetch(SERVER + "controladores/pedidos.php", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            funcion: "guardarpedido",
+                            productos: productos,
+                            cliente: cliente,
+                            observacion: observacion
+                        })
                     })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.mensaje) {
-                        alert(data.mensaje);
-                        tablaPedidoBody.innerHTML = "";
-                    } else {
-                        alert("Hubo un error al guardar el pedido");
-                    }
-                })
-                .catch(error => console.error("Error:", error));
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.mensaje) {
+                            alert(data.mensaje);
+                            tablaPedidoBody.innerHTML = "";
+                        } else {
+                            alert("Hubo un error al guardar el pedido");
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
+                }
+            } else {
+                alert("No hay productos en el pedido para guardar.");
             }
-        } else {
-            alert("No hay productos en el pedido para guardar.");
-        }
-    });
-        
+        });
 }
 
 function historialPedidos() {
@@ -265,8 +272,7 @@ function historialPedidos() {
 }
 
 function verOrdenCompra() {
-    document.getElementById("btnFiltrar").addEventListener("click", () =>
-    {
+    document.getElementById("btnFiltrar").addEventListener("click", () => {
         const form = document.getElementById("formFiltro");
         const formData = new FormData(form);
 
