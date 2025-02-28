@@ -21,10 +21,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 buscarProductos($data['query']);
             break;
 
+            case 'obtenerproveedores':
+                obtenerProveedores();
+            break;
+
             default:
                 echo json_encode(["error" => "Función no válida o no especificada"]);
-                break;
-            }
+            break;
+        }
     } else {
         echo json_encode(["error" => "No se especificó ninguna función"]);
     }
@@ -69,5 +73,18 @@ function buscarProductos($query) {
         }
     } catch (Exception $e) {
         echo json_encode(["error" => "Error al buscar productos: " . $e->getMessage()]);
+    }
+}
+
+function obtenerProveedores() {
+    global $db;
+
+    $sql = "SELECT id, proveedor FROM proveedores";
+    $result = $db->Execute($sql);
+    if ($result) {
+        $proveedores = $result->GetArray();
+        echo json_encode($proveedores);
+    } else {
+        echo json_encode(["mensaje" => "No se encontraron proveedores"]);
     }
 }

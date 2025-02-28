@@ -1,6 +1,122 @@
+:root {
+    --bg-general: #00486c;
+    --bg-claro: #0d7fb8;
+    --cl-general: #f0f0f0;
+}
+
+body {
+    margin: 0;
+}
+
+.cabecerax {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: var(--bg-general);
+}
+
+.cabecerax a {
+    background-color: var(--bg-claro);
+    color: var(--cl-general);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.cabecerax a i {
+    color: var(--cl-general);
+    font-size: 20px;
+}
+
+.cabecerax button {
+    background-color: var(--bg-claro);
+    color: var(--cl-general);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/*Estilos crearCliente */
 .ccContenedor {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+
+.ccDivCliente {
+    display: flex;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.formCliente {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 95%;
+}
+
+/*Estilos verProductos */
+.productosContenedor {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: 100%;
+}
+
+.productosDiv {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    width: 90%;
+}
+
+.clienteContenedor {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: 100%;
+}
+
+.divClientes {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    width: 90%;
+}
+
+.historialContenedor {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: 100%;
+}
+
+.divHistorial {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    width: 90%;
+}
+
+/*Estilos ordenCompra */
+select[multiple]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }

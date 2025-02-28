@@ -4,29 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clientes</title>
+    <link rel="stylesheet" href="../css/styles.css">
+     <!-- CSS -->
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+     <link rel="stylesheet" href="../assets/css/all.min.css">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+ 
+     <!-- jQuery-->
+     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+ 
+     <!-- Bootstrap JS y otros scripts -->
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 </head>
-<body id="verClientes">
-    <section class="ccContenedor">
-        <div>
-            <a href="../index.html">Volver</a>
+<body id="verClientes" class="bg-light">
+    <div id="cabecera"></div>
+ 
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow p-4">
+                    <h1 class="text-center mb-4">Clientes</h1>
+ 
+                    <div class="table-responsive">
+                        <table id="tablaClientes" class="table table-striped table-hover table-bordered">
+                            <thead class="table-dark text-center">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Razón Social</th>
+                                    <th>Ubicación</th>
+                                    <th>Teléfono</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientes">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div>
-            <h1>Clientes</h1>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Razon Social</th>
-                        <th>Ubicacion</th>
-                        <th>Telefono</th>
-                    </tr>
-                </thead>
-                <tbody id="clientes">
-                </tbody>
-            </table>
-        </div>
-    </section>
+    </div>
+ 
+    <script type="module">
+        import { cargarCabecera } from "../js/base.js";
+        cargarCabecera();
+    </script>
     <script type="module" src="../js/clientes.js"></script>
-    
-</body>
+ </body>
+ 
 </html>

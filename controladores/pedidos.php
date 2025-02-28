@@ -15,18 +15,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $funcion = strtolower($data['funcion']);
         switch ($funcion) {
             case 'guardarpedido':
-                $resultado = guardarPedido($data['productos'], $data['cliente'], $data['observacion']);
-                $response['lo que llega'] = $resultado;
-                if($resultado != false) {
-                    $response["mensaje"] = "Pedido guardado con éxito";
-                } else {
-                    $response["error"] = "Error al guardar el pedido";
+                if (isset($data['datosForm'])) {
+                    $aForm = $data['datosForm'];
+                    $resultado = guardarPedido($aForm);
+                    $response['lo que llega'] = $resultado;
+                    if($resultado) {
+                        $response["mensaje"] = "Pedido guardado con éxito";
+                    } else {
+                        $response["error"] = "Error al guardar el pedido";
+                    }
                 }
             break;
 
             case 'obtenerpedidos':
                 $pedidos = obtenerPedidos();
-                if ($pedidos != false) {
+                if ($pedidos) {
                     $response["pedidos"] = $pedidos;
                 } else {
                     $response["error"] = "No se encontraron pedidos";
@@ -60,47 +63,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 echo json_encode($response);
 
 
-function guardarPedido($productos, $cliente, $observacion) {
+function guardarPedido($aForm) {
     global $db;
     $r = false;
-    $total = 0;
+    $productos = $aForm['productos'];
+    $cliente = $aForm['cliente'];
+    $observacion = $aForm['observacion'];
+    error_log("aForm: " . json_encode($aForm));
    
     try {
         foreach ($productos as $producto) {
             $idProducto = $producto['id'];
             $cantidad = $producto['cantidad'];
+            $preciofinal = $producto['preciofinal'];
+            $observacionproducto = $producto['observacionproducto'];
 
-            $sql = "SELECT precioventa FROM productos WHERE id = ?";
-            $precioResult = $db->GetRow($sql, [$idProducto]);
+            $db->StartTrans();
+            $sqlPedido = "SELECT idcliente, fecha, total, observacion FROM pedidos WHERE idcliente=?";
+            $pedido = $db->Execute($sqlPedido, [$cliente]);
+            $registroPedido = [
+                "idcliente" => $cliente,
+                "fecha" => date('Y-m-d'),
+                "total" => $preciofinal,
+                "observacion" => $observacion
+            ];
+            $sqlInsertPedido = $db->GetInsertSQL($pedido, $registroPedido);
+            $db->Execute($sqlInsertPedido);
+            $idPedido = $db->Insert_ID();
 
-            if (!$precioResult) {
-                throw new Exception("Producto no encontrado: $idProducto");
-            }
 
-            $precio = $precioResult['precioventa'];
-            $subtotal = $cantidad * $precio;
-            $total += $subtotal;
+            $sqlDetalle = "SELECT idpedido, idproducto, cantidad, observacionproducto FROM detallepedidosfacturas WHERE idpedido=?";
+            $detalle = $db->Execute($sqlDetalle, [$idPedido]);
+            $registroDetalle = [
+                "idpedido" => $idPedido,
+                "idproducto" => $idProducto,
+                "cantidad" => $cantidad,
+                "observacionproducto" => $observacionproducto
+            ];
+
+            $sqlInsertDetalle = $db->GetInsertSQL($detalle, $registroDetalle);
+            $db->Execute($sqlInsertDetalle);
+            
+            $db->CompleteTrans();
         }
-
-        $db->StartTrans();
-
-        $sqlPedido = "INSERT INTO pedidos (fecha, total, idcliente, observacion) VALUES (CURRENT_DATE, ?, ?, ?)";
-        $db->Execute($sqlPedido, [$total, $cliente, $observacion]);
-
-        $pedidoFinal = $db->Insert_ID();
-        if (!$pedidoFinal) {
-            throw new Exception("No se pudo guardar el pedido.");
-        }
-
-        foreach ($productos as $producto) {
-            $idProducto = $producto['id'];
-            $cantidad = $producto['cantidad'];
-
-            $sqlDetalle = "INSERT INTO detallepedidos (idpedido, idproducto, cantidad, estado) VALUES (?, ?, ?, ?)";
-            $db->Execute($sqlDetalle, [$pedidoFinal, $idProducto, $cantidad, 'inicial']);
-        }
-
-        $db->CompleteTrans();
+        
         $r = true;
 
     } catch (Exception $e) {
@@ -155,32 +161,38 @@ function verOrdenCompra($aForm) {
         return "Error: Fecha de fin no es válida.";
     }
 
-    $ruta = isset($aForm['ruta']) && $aForm['ruta'] !== "elegir" ? (int)$aForm['ruta'] : null;
-    $proveedor = isset($aForm['proveedor']) && $aForm['proveedor'] !== "elegir" ? $aForm['proveedor'] : null;
+    $rutas = isset($aForm['ruta']) && is_array($aForm['ruta']) ? array_map('intval', $aForm['ruta']) : [];
+    $proveedores = isset($aForm['proveedor']) && is_array($aForm['proveedor']) ? array_map('intval', $aForm['proveedor']) : [];
 
     try {
-        $sql = "SELECT pod.nombre, SUM(dep.cantidad) AS cantidad, pod.costo, pod.proveedor " .
-                "FROM productos pod " .
-                "INNER JOIN detallepedidos dep ON pod.id = dep.idproducto " .
-                "INNER JOIN pedidos ped ON dep.idpedido = ped.id " .
-                "INNER JOIN clientes cl ON ped.idcliente = cl.id " .
-                "WHERE ped.fecha BETWEEN ? AND ?";
-
-        $params = [$fechaini, $fechafin];
-
-        if ($ruta !== null) {
-            $sql .= " AND cl.ruta = ?";
-            $params[] = $ruta;
+        if (!empty($rutas)) {
+            $rutasql = " AND cl.ruta IN (" . implode(",", $rutas) . ")";
+            $orderruta = " , cl.ruta";
+            $selectruta = "cl.ruta, ";
+        } else {
+            $rutasql = "";
+            $orderruta = "";
+            $selectruta = "";
         }
 
-        if ($proveedor !== null) {
-            $sql .= " AND pod.proveedor = ?";
-            $params[] = $proveedor;
+        if (!empty($proveedores)) {
+            $pvsql = " AND pv.id IN (" . implode(",", $proveedores) . ")";
+        } else {
+            $pvsql = "";
         }
 
-        $sql .= " GROUP BY pod.nombre, pod.costo, pod.proveedor";
+        $sql = "SELECT $selectruta pod.nombre, SUM(dep.cantidad) AS cantidad, pod.costo, pv.proveedor " .
+            "FROM productos pod " .
+            "INNER JOIN detallepedidosfacturas dep ON pod.id = dep.idproducto " .
+            "INNER JOIN pedidos ped ON dep.idpedido = ped.id " .
+            "LEFT JOIN clientes cl ON ped.idcliente = cl.id " .
+            "LEFT JOIN proveedores pv ON pod.idproveedor = pv.id " .
+            "WHERE ped.fecha BETWEEN '" . $fechaini . "' AND '" . $fechafin ."' ". $rutasql . $pvsql .
+            " GROUP BY $selectruta pod.nombre, pod.costo, pv.proveedor " .
+            "ORDER BY pod.nombre $orderruta";
+        error_log("sql: $sql");
 
-        $result = $db->GetArray($sql, $params);
+        $result = $db->GetArray($sql);
 
         return $result ? json_encode($result) : json_encode(["mensaje" => "No se encontraron resultados."]);
 

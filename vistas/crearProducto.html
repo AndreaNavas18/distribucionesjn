@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body id="crearProducto">
+    <section class="sectionH">
+        <div class="cabeceraH">
+            <h1>JN DISTRIBUCIONES</h1>
+        </div>
+        <div class="subCabeceraH">
+            <h2>Busca un cliente o producto</h2>
+        </div>
+        <div class="busquedaH">
+            <div class="input-group mb-3">
+                <input id="busquedaInput" type="text" class="form-control" placeholder="Buscar">
+                <span class="input-group-text">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+              </div>
+        </div>
+        <div class="importH">
+            <div style="background-color:#0d7fb8;">
+                <form id="importFormProducto" enctype="multipart/form-data">
+                    <label for="excel_file_producto" class="custom-file-upload">
+                        <i class="fa-solid fa-file-arrow-up"></i> Seleccionar Archivo
+                    </label>
+                    <input type="file" id="excel_file_producto" accept=".xlsx, .xls" hidden />
+                    <button type="button" id="uploadButtonProducto" class="btn btn-primary">
+                        Importar Productos
+                    </button>
+                </form>
+            </div>
+            <div style="background-color:rgb(68, 118, 255);">
+                <form id="importFormCustomer" enctype="multipart/form-data">
+                    <label for="excel_file_cliente" class="custom-file-upload">
+                        <i class="fa-solid fa-file-arrow-up"></i> Seleccionar Archivo
+                    </label>
+                    <input type="file" id="excel_file_cliente" accept=".xlsx, .xls" hidden />
+                    <button type="button" id="uploadButtonCliente" class="btn btn-primary">
+                        Importar Clientes
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="buttonsH">
+            <div>
+                <a href="./vistas/tomarPedido.html" style="background-color:deepskyblue;">
+                    <h3>Tomar pedido</h3>
+                </a>
+                <a href="./vistas/crearCliente.html" style="background-color:rgb(0, 169, 221);">
+                    <h3>Crear cliente</h3>
+                </a>
+            </div>
+            <div>
+                <a href="./vistas/verProductos.html" style="background-color:rgb(77, 169, 255);">
+                    <h3>Ver productos</h3>
+                </a>
+                <a href="./vistas/verClientes.html" style="background-color:#0d7fb8;">
+                    <h3>Ver clientes</h3>
+                </a>
+            </div>
+            <div>
+                <a href="./vistas/historialPedidos.html" style="background-color:rgb(68, 118, 255);">
+                    <h3>Ver historial pedidos</h3>
+                </a>
+                <a href="./vistas/ordenCompra.html" style="background-color:deepskyblue;">
+                    <h3>Ver orden de compra</h3>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <script src="./js/productos.js"></script>
+</body>
+</html>

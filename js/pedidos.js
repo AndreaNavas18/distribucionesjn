@@ -1,9 +1,9 @@
-const SERVER = 'http://localhost/distribucionesjn/';
+import { SERVER, pet, initSelect2, formatearMoneda, initDataTable  } from "./base.js";
 
 document.addEventListener("DOMContentLoaded", function() {
     const vista = document.body.id;
     if (vista === "tomarPedido") {
-        console.log("Estoy en tomarPedido");
+        inicialTomaPedidos();
         listarProductos();
         obtenerClientes();
         agregarProducto();
@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (vista === "historialPedidos") {
         historialPedidos();
     } else if (vista === "ordenCompra") {
+        listarProveedores();
         verOrdenCompra();
     }
 });
@@ -18,294 +19,358 @@ document.addEventListener("DOMContentLoaded", function() {
 function listarProductos() {
     const selectProductos = document.getElementById("slcProductos");
     if(selectProductos) {
-        $(document).ready(function() {
-            $('#slcProductos').select2({
-                placeholder: 'Escribe para buscar un producto...',
-                minimumInputLength: 0,
-                ajax: {
-                    url: SERVER + 'controladores/productos.php',
-                    type: 'POST',
-                    dataType: 'json',
-                    delay: 250,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    data: function(params) {
-                        return JSON.stringify({
-                            funcion: 'buscarproductos', 
-                            query: params.term || ''
-                        });
-                    },
-                    processResults: function(data) {
-                        console.log(data);
-                        if (data.error) {
-                            console.error(data.error);
-                            return { results: [] };
-                        }
-                        return {
-                            results: data.map(function(producto) {
-                                return {
-                                    id: producto.id,
-                                    text: producto.nombre
-                                };
-                            })
-                        };
-                    },
-                    cache: true
-                }
-            });
+        initSelect2("#slcProductos", {
+            placeholder: 'Escribe para buscar un producto...',
+            minimumInputLength: 0,
+            dropdownAutoWidth: true,
+            width: '100%',
+            ajax: {
+                url: SERVER + 'controladores/productos.php',
+                type: 'POST',
+                dataType: 'json',
+                delay: 250,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                data: params => JSON.stringify({
+                    funcion: 'buscarproductos', 
+                    query: params.term || ''
+                }),
+                processResults: data => {
+                    console.log(data);
+                    if (data.error) {
+                        console.error(data.error);
+                        return { results: [] };
+                    }
+                    return {
+                        results: data.map(producto => ({
+                            id: producto.id,
+                            text: producto.nombre
+                        }))
+                    };
+                },
+                cache: true
+            }
         });
     }
 }
 
-function obtenerClientes() {
-    fetch(SERVER + "controladores/clientes.php", {
-        method: "POST",
-        body: JSON.stringify({ funcion: "obtenerclientes" })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            console.error("Error:", data.error);
-        } else {
-            const clientes = document.getElementById("slcClientes");
-            if (clientes) {
-                for (const cliente of data) {
-                    clientes.innerHTML += `
-                    <option value="${cliente.id}">${cliente.nombre}</option>
-                    `;
-                }
-            } else {
-                console.error("El elemento 'clientes' no existe en el DOM");
-            }
+async function obtenerClientes() {
+    const data = await pet("controladores/clientes.php", { funcion: "obtenerclientes" });
+
+    if (data.error) {
+        console.error("Error:", data.error);
+        return;
+    }
+
+    const clientes = document.getElementById("slcClientes");
+    if (clientes) {
+        clientes.innerHTML = "<option value='elegir'>Seleccione un cliente</option>" + data.map(cliente =>
+            `<option value="${cliente.id}">${cliente.nombre}</option>`
+        ).join('');
+    } else {
+        console.error("El elemento 'slcClientes' no existe en el DOM");
+    }
+}
+
+function inicialTomaPedidos() {
+    const divPrecios = document.getElementById("preciosPosibles");
+    const selectProductos = document.getElementById("slcProductos");
+
+    $(selectProductos).on("select2:select", async function () {
+        console.log("Cambio el select de productos");
+        const productoSeleccionado = this.value;
+        const {costo, precioventa} = await obtenerCosto(productoSeleccionado);
+
+        if (!costo) {
+            divPrecios.innerHTML = "";
+            divPrecios.style.display = "none";
+            return;
         }
-    })
-    .catch(error => console.error("Error en la solicitud:", error));
+
+        const precios = {
+            base: costo,
+            diez: costo + (costo * 10 / 100),
+            quince: costo + (costo * 15 / 100),
+            veinticinco: costo + (costo * 25 / 100),
+            precioventa: precioventa
+        };
+
+        divPrecios.innerHTML = `
+        <div class="row g-2">
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-primary precio-btn" data-precio="${precios.precioventa}">Venta: ${formatearMoneda(precios.precioventa)}</button>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-primary precio-btn" data-precio="${precios.base}">Costo: ${formatearMoneda(precios.base)}</button>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-success precio-btn" data-precio="${precios.diez}">+10%: ${formatearMoneda(precios.diez)}</button>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-warning precio-btn" data-precio="${precios.quince}">+15%: ${formatearMoneda(precios.quince)}</button>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-danger precio-btn" data-precio="${precios.veinticinco}">+25%: ${formatearMoneda(precios.veinticinco)}</button>
+            </div>
+            <div class="col-auto">
+                <input type="number" id="precioPersonalizado" class="form-control w-auto" placeholder="Otro precio">
+            </div>
+        </div>
+        `;
+
+
+        divPrecios.style.display = "block";
+
+        document.querySelectorAll(".precio-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+                document.querySelectorAll(".precio-btn").forEach(b => b.classList.remove("active"));
+                this.classList.add("active");
+                document.getElementById("precioPersonalizado").value = this.dataset.precio;
+            });
+        });
+    });
 }
 
-function formatearMoneda(valor) {
-    valor = parseFloat(valor);
-    
-    if (isNaN(valor)) return "$0";
 
-    return new Intl.NumberFormat('es-CO', { 
-        style: 'currency', 
-        currency: 'COP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(valor);
+async function obtenerCosto(productoId) {
+    const productos = await pet("controladores/productos.php", { funcion: "obtenerproductos" });
+    const producto = productos.find(p => p.id == productoId);
+    return producto ? { costo: parseFloat(producto.costo), precioventa: parseFloat(producto.precioventa)} : {costo: 0, precioventa: 0};
 }
 
-function agregarProducto() {
+async function agregarProducto() {
         const btnAgregar = document.getElementById("btnAgregar");
         const btnCantidad = document.getElementById("btnCantidad");
         const selectProductos = document.getElementById("slcProductos");
         const inputCantidad = document.getElementById("cantidad");
         const tablaPedidoBody = document.querySelector("#tablaPedido tbody");
         const tdIdProducto = document.getElementById("codigoProd");
+        const totalPedidoInput = document.getElementById("totalPedido");
         tdIdProducto.style.display = "none";
-        const infoProductos = [];
 
-        fetch(SERVER + "controladores/productos.php", {
-            method: "POST",
-            body: JSON.stringify({ funcion: "obtenerproductos" })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data) {
-                infoProductos.push(...data);
+        if (!btnAgregar || !btnCantidad || !selectProductos || !inputCantidad || !tablaPedidoBody || !totalPedidoInput) {
+            console.error("Uno o más elementos no existen en el DOM");
+            return;
+        }
+
+        let infoProductos = [];
+
+        try {
+            const data = await pet("controladores/productos.php", { funcion: "obtenerproductos" });
+            if (data && Array.isArray(data)) {
+                infoProductos = data;
             }
-        })
-        .catch(error => console.error("Error en la solicitud:", error));
+        } catch (error) {
+            console.error("Error obteniendo productos:", error);
+        }
     
         btnAgregar.addEventListener("click", function () {
             console.log("dentro de agregar producto, di click");
             const productoSeleccionado = selectProductos.options[selectProductos.selectedIndex];
             const cantidad = inputCantidad.value;
-            
-            if (productoSeleccionado.value && cantidad > 0) {
-                const nombreProducto = productoSeleccionado.text;
-                const idProducto = productoSeleccionado.value;
-                const precioProducto = infoProductos.find(producto => producto.id == productoSeleccionado.value).precioventa;
-    
-                const fila = document.createElement("tr");
-    
-                const celdaCantidad = document.createElement("td");
-                celdaCantidad.textContent = cantidad;
-                fila.appendChild(celdaCantidad);
 
-                const celdaIdProducto = document.createElement("td");
-                celdaIdProducto.textContent = idProducto;
-                celdaIdProducto.style.display = "none";
-                fila.appendChild(celdaIdProducto);
-    
-                const celdaProducto = document.createElement("td");
-                celdaProducto.textContent = nombreProducto;
-                fila.appendChild(celdaProducto);
-
-                const celdaPrecio = document.createElement("td");
-                celdaPrecio.textContent = formatearMoneda(precioProducto);
-                fila.appendChild(celdaPrecio);
-
-                const celdaSubTotal = document.createElement("td");
-                const subtotal = precioProducto * cantidad;
-                celdaSubTotal.textContent = formatearMoneda(subtotal);
-                fila.appendChild(celdaSubTotal);
-    
-                // Celda de acciones con botón para eliminar la fila
-                const celdaAcciones = document.createElement("td");
-                const botonEliminar = document.createElement("button");
-                botonEliminar.textContent = "Eliminar";
-                botonEliminar.classList.add("btn", "btn-danger");
-                botonEliminar.addEventListener("click", function () {
-                    tablaPedidoBody.removeChild(fila);
-                });
-                celdaAcciones.appendChild(botonEliminar);
-                fila.appendChild(celdaAcciones);
-    
-                tablaPedidoBody.appendChild(fila);
-                inputCantidad.value = "";
-                $(selectProductos).val(null).trigger("change");
-
-                // Calcular total
-                let total = 0;
-                const filas = tablaPedidoBody.querySelectorAll("tr");
-                filas.forEach((fila) => {
-                    const textoSubtotal = fila.querySelector("td:nth-child(5)").textContent;
-                    const subTotal = textoSubtotal.replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.');
-                    total += parseFloat(subTotal);
-                });
-                document.getElementById("totalPedido").value = formatearMoneda(total);
-                
-            } else {
+            if (!productoSeleccionado.value || cantidad <= 0) {
                 alert("Por favor, seleccione un producto y una cantidad válida.");
+                return;
             }
+            
+            const idProducto = productoSeleccionado.value;
+            const nombreProducto = productoSeleccionado.text;
+            const producto = infoProductos.find(prod => prod.id == idProducto);
+
+            if (!producto) {
+                console.error("Producto no encontrado en la lista.");
+                return;
+            }
+            const precioProducto = parseFloat(producto.precioventa);
+            const precioSeleccionado = document.querySelector(".precio-btn.active");
+            //primero debe existir precioPersonalizado
+            const precioPersonalizadoElement = document.getElementById("precioPersonalizado");
+            const precioManual = precioPersonalizadoElement ? precioPersonalizadoElement.value : null;
+            
+            let precioFinal;
+            if (precioManual) {
+                precioFinal = parseFloat(precioManual);
+            } else if (precioSeleccionado) {
+                precioFinal = parseFloat(precioSeleccionado.dataset.precio);
+            } else {
+                precioFinal = precioProducto;
+            }
+            
+            const subTotal = precioFinal * cantidad;
+
+            const fila = document.createElement("tr");
+            fila.setAttribute("data-id", idProducto);
+            fila.innerHTML = `
+                <td>${cantidad}</td>
+                <td>${nombreProducto}</td>
+                <td>${formatearMoneda(precioFinal)}</td>
+                <td>${formatearMoneda(subTotal)}</td>
+                <td><input type='text-area' class='form-control' id='observacionproducto' name='observacionproducto'></td>
+                <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
+            `;
+
+            fila.querySelector(".btnEliminar").addEventListener("click", function () {
+                fila.remove();
+                actualizarTotal();
+            });
+    
+            tablaPedidoBody.appendChild(fila);
+            inputCantidad.value = "";
+            $(selectProductos).val(null).trigger("change");
+    
+            actualizarTotal();
         });
 
         btnCantidad.addEventListener("click", function () {
-            //inserto un 12 en el input cantidad
             inputCantidad.value = 12;
         });
+
+        function actualizarTotal() {
+            let total = 0;
+            document.querySelectorAll("#tablaPedido tbody tr").forEach(fila => {
+                const textoSubtotal = fila.children[3].textContent;
+                const subTotal = parseFloat(textoSubtotal.replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.'));
+                total += subTotal;
+            });
+            totalPedidoInput.value = formatearMoneda(total);
+        }
 }
 
 function guardarPedido() {
-        const btnGuardar = document.getElementById("btnGuardarPedido");
+    document.getElementById("btnGuardarPedido").addEventListener("click", async function () {
         const tablaPedidoBody = document.querySelector("#tablaPedido tbody");
+        if (!tablaPedidoBody) {
+            alert("Error: No se encontró la tabla de pedidos.");
+            return;
+        }
+    
         const filas = tablaPedidoBody.querySelectorAll("tr");
-        const cliente = document.getElementById("slcClientes").value;
-        const observacion = document.getElementById("observacion").value;
-    
-        const productos = [];
-    
-        filas.forEach((fila) => {
-            const cantidad = fila.querySelector("td:nth-child(1)").textContent;
-            const idProducto = fila.querySelector("td:nth-child(2)").textContent;
-    
-            productos.push({
-                id: parseInt(idProducto, 10),
-                cantidad: parseInt(cantidad, 10)
-            });
-        });
+        if (filas.length === 0) {
+            alert("No hay productos en la tabla.");
+            return;
+        }
 
-        btnGuardar.addEventListener("click", function () {
-            if (productos.length > 0) {
-                if (!cliente || cliente === "elegir") {
-                    alert("Por favor, seleccione un cliente.");
-                    return;
-                } else {
-                    fetch(SERVER + "controladores/pedidos.php", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            funcion: "guardarpedido",
-                            productos: productos,
-                            cliente: cliente,
-                            observacion: observacion
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.mensaje) {
-                            alert(data.mensaje);
-                            tablaPedidoBody.innerHTML = "";
-                        } else {
-                            alert("Hubo un error al guardar el pedido");
-                        }
-                    })
-                    .catch(error => console.error("Error:", error));
-                }
-            } else {
-                alert("No hay productos en el pedido para guardar.");
+        const productos = Array.from(filas).map(fila => ({
+            id: parseInt(fila.getAttribute("data-id"), 10),
+            cantidad: parseInt(fila.cells[0]?.textContent.trim(), 10),
+            preciofinal: parseFloat(fila.cells[2]?.textContent.trim().replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.')),
+            observacionproducto: document.getElementById("observacionproducto").value
+        })).filter(p => p.id && p.cantidad);
+    
+        if (productos.length === 0) {
+            alert("Error: No se capturaron productos correctamente.");
+            return;
+        }
+
+        const totall = parseFloat(document.getElementById("totalPedido").value.replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.'));
+    
+        // Envío los datos al servidor
+        const data = await pet("controladores/pedidos.php", {
+            funcion: "guardarpedido",
+            datosForm: {
+                total: totall,
+                cliente: document.getElementById("slcClientes").value,
+                observacion: document.getElementById("observacion").value,
+                productos: productos
             }
         });
+
+        if (data.mensaje) {
+            alert(data.mensaje);
+            tablaPedidoBody.innerHTML = "";
+        } else {
+            alert("Hubo un error al guardar el pedido");
+        }
+
+        document.getElementById("totalPedido").value = "";
+        document.getElementById("slcClientes").value = "elegir";
+        document.getElementById("preciosPosibles").innerHTML = "";
+        document.getElementById("preciosPosibles").style.display = "none";
+
+    });
 }
 
-function historialPedidos() {
-    fetch(SERVER + "controladores/pedidos.php", {
-        method: "POST",
-        body: JSON.stringify({ funcion: "obtenerpedidos" })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if(data.pedidos){
-            const pedidosArray = JSON.parse(data.pedidos); 
-            const pedidos = document.getElementById("pedidos");
-            if(pedidos) {
-                for (const pedido of pedidosArray) {
-                    pedidos.innerHTML += `
-                    <tr>
-                        <td>${pedido.fecha}</td>
-                        <td>${pedido.cliente}</td>
-                        <td>${pedido.total}</td>
-                        <td>${pedido.observacion}</td>
-                    </tr>
-                    `;
-                }
-            }
-        } else {
-            console.error("Error:", data.error);
+async function historialPedidos() {
+    const data = await pet("controladores/pedidos.php", { funcion: "obtenerpedidos" });
+
+    if (data.pedidos) {
+        const pedidosArray = JSON.parse(data.pedidos);
+        const pedidos = document.getElementById("pedidos");
+
+        if (pedidos) {
+            pedidos.innerHTML = pedidosArray.map(pedido => `
+                <tr>
+                    <td>${pedido.fecha}</td>
+                    <td>${pedido.cliente}</td>
+                    <td>${pedido.total}</td>
+                    <td>${pedido.observacion}</td>
+                </tr>
+            `).join("");
         }
-    })
-    .catch(error => console.error("Error en la solicitud:", error));
+    } else {
+        console.error("Error", data.error);
+    }
+
+    initDataTable("#tablaHistorialP");
 }
 
 function verOrdenCompra() {
-    document.getElementById("btnFiltrar").addEventListener("click", () => {
+    document.getElementById("btnFiltrar").addEventListener("click", async () => {
+        document.getElementById("thRuta").style.display = "none";
         const form = document.getElementById("formFiltro");
         const formData = new FormData(form);
+        const rutasSeleccionadas = [...document.getElementById("slcRuta").selectedOptions].map(opt => opt.value);
+        const proveedoresSeleccionados = [...document.getElementById("slcProveedor").selectedOptions].map(opt => opt.value);
+        const formDataObj = Object.fromEntries(formData.entries());
+        formDataObj.ruta = rutasSeleccionadas;
+        formDataObj.proveedor = proveedoresSeleccionados;
 
-        const formDataObj = {};
-        formData.forEach((value, key) => {
-            formDataObj[key] = value;
+        const data = await pet("controladores/pedidos.php", {
+            funcion: "verordencompra",
+            datosForm: formDataObj
         });
 
-        fetch(SERVER + "controladores/pedidos.php", {
-            method: "POST",
-            body: JSON.stringify({ funcion: "verordencompra", datosForm: formDataObj })
-        })
-            .then(response => response.json())
-            .then(data => {
-                //creo dinamicamente la tabla con el objeto que me llega de cada producto y su cantidad
-                if(data.orden){
-                    const ordenArr = JSON.parse(data.orden); 
-                    const tablaOrdenCompra = document.getElementById("ordenesCompra");
-                    if(tablaOrdenCompra) {
-                        tablaOrdenCompra.innerHTML = "";
-                        for (const orden of ordenArr) {
-                            tablaOrdenCompra.innerHTML += `
-                            <tr>
-                                <td>${orden.nombre}</td>
-                                <td>${orden.cantidad}</td>
-                                <td>${orden.costo}</td>
-                                <td>${orden.proveedor}</td>
-                            </tr>
-                            `;
-                        }
-                    }
+        if (data.orden) {
+            console.log("dataorden " + data.orden);
+            const ordenArr = JSON.parse(data.orden);
+            const tablaOrdenCompra = document.getElementById("ordenesCompra");
+
+            if (tablaOrdenCompra && Array.isArray(ordenArr)) {
+                if(ordenArr[0].ruta){
+                    document.getElementById("thRuta").style.display = "block";
                 }
-            })
-            .catch(error => console.error("Error en la solicitud:", error));
+
+                tablaOrdenCompra.innerHTML = ordenArr.map(orden => `
+                    <tr>
+                        <td>${orden.nombre}</td>
+                        <td>${orden.cantidad}</td>
+                        <td>${orden.costo}</td>
+                        <td>${orden.proveedor}</td>
+                        ${orden.ruta ? `<td>${orden.ruta}</td>` : ''}
+                    </tr>
+                `).join("");
+            }
+        } else {
+            console.error("Error en la respuesta del servidor:", data.error);
+        }
     });
+}
+
+async function listarProveedores() {
+    const selectProveedores = document.getElementById("slcProveedor");
+    if(selectProveedores) {
+        const data = await pet("controladores/productos.php", { funcion: "obtenerproveedores" });
+
+        if (data.error) {
+            console.error("Error:", data.error);
+            return;
+        }
+
+        selectProveedores.innerHTML = "<option value='elegir'>Todos los proveedores</option>" + 
+        data.map(proveedor =>
+            `<option value="${proveedor.id}">${proveedor.proveedor}</option>`
+        ).join('');
+    }
 }

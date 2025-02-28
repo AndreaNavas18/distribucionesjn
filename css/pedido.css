@@ -69,13 +69,16 @@
     justify-self: space-between;
 }
 
+.select2-container {
+    width: 80% !important;
+}
+
 .select2-container .select2-selection--single {
     height: 40px !important;
     padding: 0.375rem 2.25rem 0.375rem 0.75rem;
     font-size: 20px;
     border-color: #dee2e6 !important;
 }
-
 
 #tablaPedido {
     margin-top: 15px;

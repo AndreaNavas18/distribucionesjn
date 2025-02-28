@@ -4,61 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">   
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="./assets/css/all.min.css">
     <link rel="stylesheet" href="./css/index.css">
 </head>
 <body id="index">
-    <div class="headerHome">
-        <button>
-            <i class="fa-solid fa-bars"></i>
-        </button>
-        <div class="imgDiv">
-            <img class="logoimg" src="./public/images/logo1.png" alt="logo">
+    <section class="hero">
+        <h1>JN DISTRIBUCIONES</h1>
+        <div class="search-box input-group">
+            <input type="text" class="form-control" placeholder="Buscar cliente o producto">
+            <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
         </div>
-    </div>
-    <div class="contenedorP">
-        <h1>Qué quieres hacer hoy?</h1>
-        <div class="contenedorS">
-            <div>
-                <a href="./vistas/tomarPedido.html">
-                    <h3>Tomar pedido</h3>
-                </a>
-                <a href="./vistas/crearCliente.html">
-                    <h3>Crear cliente</h3>
-                </a>
-            </div>
-            <div>
-                <a href="./vistas/verProductos.html">
-                    <h3>Ver productos</h3>
-                </a>
-                <a href="./vistas/verClientes.html">
-                    <h3>Ver clientes</h3>
-                </a>
-            </div>
-            <div>
-                <a href="./vistas/historialPedidos.html">
-                    <h3>Ver historial pedidos</h3>
-                </a>
-                <a href="./vistas/ordenCompra.html">
-                    <h3>Ver orden de compra</h3>
-                </a>
-            </div>
-            <div>
-                <div>
-                    <form id="importFormProducto" enctype="multipart/form-data">
-                        <input type="file" id="excel_file" accept=".xlsx, .xls" />
-                        <button type="button" id="uploadButton">Importar Productos</button>
-                    </form>
-                </div>
-                <a>
-                    <h3>Importar clientes</h3>
-                </a>
-            </div>
+    </section>
+    
+    <section class="import-section">
+        <div class="import-card">
+            <form id="importFormProducto" enctype="multipart/form-data" class="import-container">
+                <label for="excel_file_producto" class="custom-file-upload" id="label_producto">
+                    <i class="fa-solid fa-file-arrow-up"></i> Seleccionar Archivo
+                </label>
+                <input type="file" id="excel_file_producto" accept=".xlsx, .xls" hidden />
+                <button type="button" id="uploadButtonProducto" class="btn btn-primary">
+                    <i class="fa-solid fa-upload"></i> Importar Productos
+                </button>
+            </form>
         </div>
-    </div>
+        <div class="import-card">
+            <form id="importFormCliente" enctype="multipart/form-data" class="import-container">
+                <label for="excel_file_cliente" class="custom-file-upload" id="label_cliente">
+                    <i class="fa-solid fa-file-arrow-up"></i> Seleccionar Archivo
+                </label>
+                <input type="file" id="excel_file_cliente" accept=".xlsx, .xls" hidden />
+                <button type="button" id="uploadButtonCliente" class="btn btn-primary">
+                    <i class="fa-solid fa-upload"></i> Importar Clientes
+                </button>
+            </form>
+        </div>
+    </section>
+    
+    <section class="buttons-grid">
+        <a href="./vistas/tomarPedido.html">Tomar Pedido</a>
+        <a href="./vistas/crearCliente.html">Crear Cliente</a>
+        <a href="./vistas/verProductos.html">Ver Productos</a>
+        <a href="./vistas/verClientes.html">Ver Clientes</a>
+        <a href="./vistas/historialPedidos.html">Historial Pedidos</a>
+        <a href="./vistas/ordenCompra.html">Orden de Compra</a>
+    </section>
 
-    <script src="./js/productos.js"></script>
+    <script type="module" src="./js/productos.js"></script>
 </body>
 </html>
