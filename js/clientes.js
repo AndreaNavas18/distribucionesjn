@@ -30,8 +30,6 @@ async function crearClientes() {
 
             if (respuesta.error) {
                 console.error("Error:", respuesta.error);
-            } else {
-                console.log("Éxito:", respuesta.mensaje);
             }
         });
     }

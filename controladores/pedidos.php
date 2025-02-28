@@ -150,15 +150,11 @@ function verOrdenCompra($aForm) {
 
     $fechaini = isset($aForm['fechaInicio']) ? $aForm['fechaInicio'] : null;
     $fechafin = isset($aForm['fechaFin']) && $aForm['fechaFin'] !== "" ? $aForm['fechaFin'] : $fechaini;
+    error_log("fechaini: " . $fechaini . " fechafin: " . $fechafin);
+    error_log("aForm: " . json_encode($aForm));
 
-    if ($fechaini && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaini)) {
-        error_log("Fecha de inicio no válida: $fechaini");
-        return "Error: Fecha de inicio no es válida.";
-    }
-
-    if ($fechafin && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechafin)) {
-        error_log("Fecha de fin no válida: $fechafin");
-        return "Error: Fecha de fin no es válida.";
+    if (($fechaini && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaini)) || ($fechafin && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechafin))) {
+        return "Error: Fecha no válida.";
     }
 
     $rutas = isset($aForm['ruta']) && is_array($aForm['ruta']) ? array_map('intval', $aForm['ruta']) : [];
@@ -181,17 +177,17 @@ function verOrdenCompra($aForm) {
             $pvsql = "";
         }
 
-        $sql = "SELECT $selectruta pod.nombre, SUM(dep.cantidad) AS cantidad, pod.costo, pv.proveedor " .
-            "FROM productos pod " .
-            "INNER JOIN detallepedidosfacturas dep ON pod.id = dep.idproducto " .
-            "INNER JOIN pedidos ped ON dep.idpedido = ped.id " .
-            "LEFT JOIN clientes cl ON ped.idcliente = cl.id " .
-            "LEFT JOIN proveedores pv ON pod.idproveedor = pv.id " .
+        $sql = "SELECT $selectruta pod.nombre, SUM(dep.cantidad) AS cantidad, pod.costo, pv.proveedor, ".
+            "STRING_AGG(DISTINCT dep.observacionproducto, ' - ' ORDER BY dep.observacionproducto) AS observacion ".
+            "FROM productos pod ".
+            "INNER JOIN detallepedidosfacturas dep ON pod.id = dep.idproducto ".
+            "INNER JOIN pedidos ped ON dep.idpedido = ped.id ".
+            "LEFT JOIN clientes cl ON ped.idcliente = cl.id ".
+            "LEFT JOIN proveedores pv ON pod.idproveedor = pv.id ".
             "WHERE ped.fecha BETWEEN '" . $fechaini . "' AND '" . $fechafin ."' ". $rutasql . $pvsql .
-            " GROUP BY $selectruta pod.nombre, pod.costo, pv.proveedor " .
+            " GROUP BY $selectruta pod.nombre, pod.costo, pv.proveedor ".
             "ORDER BY pod.nombre $orderruta";
-        error_log("sql: $sql");
-
+        error_log("SQL: " . $sql);
         $result = $db->GetArray($sql);
 
         return $result ? json_encode($result) : json_encode(["mensaje" => "No se encontraron resultados."]);

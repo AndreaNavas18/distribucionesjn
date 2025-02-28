@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (vista === "historialPedidos") {
         historialPedidos();
     } else if (vista === "ordenCompra") {
+        initCalendars();
         listarProveedores();
         verOrdenCompra();
     }
@@ -37,7 +38,6 @@ function listarProductos() {
                     query: params.term || ''
                 }),
                 processResults: data => {
-                    console.log(data);
                     if (data.error) {
                         console.error(data.error);
                         return { results: [] };
@@ -78,7 +78,6 @@ function inicialTomaPedidos() {
     const selectProductos = document.getElementById("slcProductos");
 
     $(selectProductos).on("select2:select", async function () {
-        console.log("Cambio el select de productos");
         const productoSeleccionado = this.value;
         const {costo, precioventa} = await obtenerCosto(productoSeleccionado);
 
@@ -132,7 +131,6 @@ function inicialTomaPedidos() {
     });
 }
 
-
 async function obtenerCosto(productoId) {
     const productos = await pet("controladores/productos.php", { funcion: "obtenerproductos" });
     const producto = productos.find(p => p.id == productoId);
@@ -166,7 +164,6 @@ async function agregarProducto() {
         }
     
         btnAgregar.addEventListener("click", function () {
-            console.log("dentro de agregar producto, di click");
             const productoSeleccionado = selectProductos.options[selectProductos.selectedIndex];
             const cantidad = inputCantidad.value;
 
@@ -333,7 +330,6 @@ function verOrdenCompra() {
         });
 
         if (data.orden) {
-            console.log("dataorden " + data.orden);
             const ordenArr = JSON.parse(data.orden);
             const tablaOrdenCompra = document.getElementById("ordenesCompra");
 
@@ -349,6 +345,7 @@ function verOrdenCompra() {
                         <td>${orden.costo}</td>
                         <td>${orden.proveedor}</td>
                         ${orden.ruta ? `<td>${orden.ruta}</td>` : ''}
+                        <td>${orden.observacion}</td>
                     </tr>
                 `).join("");
             }
@@ -373,4 +370,10 @@ async function listarProveedores() {
             `<option value="${proveedor.id}">${proveedor.proveedor}</option>`
         ).join('');
     }
+}
+
+function initCalendars() {
+    const fechaFin = document.getElementById("fechaFin");
+    const hoy = new Date().toISOString().split("T")[0];
+    fechaFin.value = hoy; 
 }
