@@ -45,7 +45,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } else {
                         $response["error"] = "No se encontraron pedidos";
                     }
-                    
+                }
+            break;
+
+            case 'verpedido':
+                if (isset($data['id'])) {
+                    $id = $data['id'];
+                    $pedido = verPedido($id);
+                    if ($pedido) {
+                        $response["pedido"] = $pedido['pedido'];
+                        $response["detalle"] = $pedido['detalle'];
+                    } else {
+                        $response["error"] = "No se encontró el pedido";
+                    }
+                } else {
+                    $response["error"] = "No se especificó el ID del pedido";
                 }
             break;
 
@@ -196,4 +210,17 @@ function verOrdenCompra($aForm) {
         error_log("Error en verOrdenCompra: " . $e->getMessage());
         return json_encode(["error" => "Error al obtener la orden de compra."]);
     }
+}
+
+function verPedido($idPedido) {
+    global $db;
+
+    $sqlPedido = "SELECT id, idcliente,observacion FROM pedidos WHERE id =" . $idPedido;
+    $pedido = $db->GetRow($sqlPedido);
+
+    $sqlDetalle = "SELECT idproducto, cantidad, observacionproducto, estado ".
+    "FROM detallepedidosfacturas WHERE idpedido =" . $idPedido;
+    $detallepedido = $db->GetArray($sqlDetalle);
+
+    return $pedido ? ["pedido" => $pedido, "detalle" => $detallepedido] : false;
 }

@@ -303,6 +303,7 @@ async function historialPedidos() {
                     <td>${pedido.cliente}</td>
                     <td>${pedido.total}</td>
                     <td>${pedido.observacion}</td>
+                    <td><button class="btn btn-primary" id="btnEditarPedido" data-id="${pedido.id}">Editar</button></td>
                 </tr>
             `).join("");
         }
@@ -311,6 +312,8 @@ async function historialPedidos() {
     }
 
     initDataTable("#tablaHistorialP");
+
+    editarPedido();
 }
 
 function verOrdenCompra() {
@@ -377,3 +380,40 @@ function initCalendars() {
     const hoy = new Date().toISOString().split("T")[0];
     fechaFin.value = hoy; 
 }
+
+//Al darle click al boton de editar pedido haga la peticion a verpedido en mi controlador pedidos
+function editarPedido() {
+    const btnEditarPedido = document.getElementById("btnEditarPedido");
+    if (btnEditarPedido) {
+        btnEditarPedido.addEventListener("click", async function () {
+            console.log("click");
+            const idPedido = this.dataset.id;
+            const data = await pet("controladores/pedidos.php", { funcion: "verpedido", id: idPedido });
+
+            if (data.error) {
+                console.error("Error:", data.error);
+                return;
+            }
+
+            console.log(data);
+
+            // const pedido = data.pedido;
+            // const tablaPedidoBody = document.querySelector("#tablaPedido tbody");
+            // tablaPedidoBody.innerHTML = pedido.productos.map(producto => `
+            //     <tr data-id="${producto.id}">
+            //         <td>${producto.cantidad}</td>
+            //         <td>${producto.nombre}</td>
+            //         <td>${producto.preciofinal}</td>
+            //         <td>${producto.subtotal}</td>
+            //         <td><input type='text-area' class='form-control' id='observacionproducto' name='observacionproducto' value='${producto.observacionproducto}'></td>
+            //         <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
+            //     </tr>
+            // `).join('');
+
+            // document.getElementById("totalPedido").value = pedido.total;
+            // document.getElementById("slcClientes").value = pedido.cliente;
+            // document.getElementById("observacion").value = pedido.observacion;
+        });
+    }
+}
+        
