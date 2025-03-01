@@ -3,7 +3,6 @@ import { SERVER, pet, initSelect2, formatearMoneda, initDataTable  } from "./bas
 document.addEventListener("DOMContentLoaded", function() {
     const vista = document.body.id;
     if (vista === "tomarPedido") {
-        inicialTomaPedidos();
         listarProductos();
         obtenerClientes();
         agregarProducto();
@@ -14,6 +13,8 @@ document.addEventListener("DOMContentLoaded", function() {
         initCalendars();
         listarProveedores();
         verOrdenCompra();
+    } else if(vista === "index") {
+        document.getElementById("tomarPedido").addEventListener("click", cargarVista);
     }
 });
 
@@ -54,6 +55,78 @@ function listarProductos() {
         });
     }
 }
+
+function cargarVista(idPedido = null) {
+    if (idPedido) {
+        window.location.href = `vistas/tomarPedido.html?id=${idPedido}`;
+        cargarDatosPedido(idPedido);
+    } else {
+        window.location.href = "vistas/tomarPedido.html";
+    }
+}
+
+async function cargarVistaPedido(idPedido = null) {
+    //Primero necesito cargar la vista y luego tomar el contenido
+    
+    const contenido = document.getElementById("contenidoPedido");
+    
+    if (contenido) {
+    const response = await fetch("../vistas/tomarPedido.html");
+    const html = await response.text();
+        contenido.innerHTML = html;
+    
+        if (idPedido) {
+            cargarDatosPedido(idPedido);
+        }
+    
+        inicialTomaPedidos();
+    }
+}
+
+async function cargarDatosPedido(idPedido) {
+    const data = await pet("controladores/pedidos.php", { funcion: "verpedido", id: idPedido });
+
+    if (data.error) {
+        console.error("Error:", data.error);
+        return;
+    }
+
+    document.getElementById("slcClientes").value = data.pedido.idcliente;
+    document.getElementById("observacion").value = data.pedido.observacion;
+
+    const tbody = document.querySelector("#tablaPedido tbody");
+    tbody.innerHTML = "";
+
+    data.detalle.forEach((producto) => {
+        let fila = `
+        <tr>
+            <td>${producto.cantidad}</td>
+            <td>${producto.idproducto}</td>
+            <td>${producto.nombre}</td>
+            <td>${formatearMoneda(producto.precioventa)}</td>
+            <td>${formatearMoneda(producto.cantidad * producto.precioventa)}</td>
+            <td>${producto.observacionproducto}</td>
+            <td>
+                <button class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">Eliminar</button>
+            </td>
+        </tr>
+        `;
+        tbody.innerHTML += fila;
+    });
+
+    actualizarTotal();
+}
+
+function editarPedido() {
+    const btnEditarPedido = document.querySelectorAll("#btnEditarPedido");
+    btnEditarPedido.forEach(boton => {
+        boton.addEventListener("click", function () {
+            const idPedido = this.dataset.id;
+            cargarVista(idPedido);
+        });
+    });
+}
+
 
 async function obtenerClientes() {
     const data = await pet("controladores/clientes.php", { funcion: "obtenerclientes" });
@@ -224,15 +297,16 @@ async function agregarProducto() {
             inputCantidad.value = 12;
         });
 
-        function actualizarTotal() {
-            let total = 0;
-            document.querySelectorAll("#tablaPedido tbody tr").forEach(fila => {
-                const textoSubtotal = fila.children[3].textContent;
-                const subTotal = parseFloat(textoSubtotal.replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.'));
-                total += subTotal;
-            });
-            totalPedidoInput.value = formatearMoneda(total);
-        }
+    }
+
+function actualizarTotal() {
+    let total = 0;
+    document.querySelectorAll("#tablaPedido tbody tr").forEach(fila => {
+        const textoSubtotal = fila.children[3].textContent;
+        const subTotal = parseFloat(textoSubtotal.replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.'));
+        total += subTotal;
+    });
+    totalPedidoInput.value = formatearMoneda(total);
 }
 
 function guardarPedido() {
@@ -355,6 +429,8 @@ function verOrdenCompra() {
         } else {
             console.error("Error en la respuesta del servidor:", data.error);
         }
+
+        actualizarTotal();
     });
 }
 
@@ -379,41 +455,5 @@ function initCalendars() {
     const fechaFin = document.getElementById("fechaFin");
     const hoy = new Date().toISOString().split("T")[0];
     fechaFin.value = hoy; 
-}
-
-//Al darle click al boton de editar pedido haga la peticion a verpedido en mi controlador pedidos
-function editarPedido() {
-    const btnEditarPedido = document.getElementById("btnEditarPedido");
-    if (btnEditarPedido) {
-        btnEditarPedido.addEventListener("click", async function () {
-            console.log("click");
-            const idPedido = this.dataset.id;
-            const data = await pet("controladores/pedidos.php", { funcion: "verpedido", id: idPedido });
-
-            if (data.error) {
-                console.error("Error:", data.error);
-                return;
-            }
-
-            console.log(data);
-
-            // const pedido = data.pedido;
-            // const tablaPedidoBody = document.querySelector("#tablaPedido tbody");
-            // tablaPedidoBody.innerHTML = pedido.productos.map(producto => `
-            //     <tr data-id="${producto.id}">
-            //         <td>${producto.cantidad}</td>
-            //         <td>${producto.nombre}</td>
-            //         <td>${producto.preciofinal}</td>
-            //         <td>${producto.subtotal}</td>
-            //         <td><input type='text-area' class='form-control' id='observacionproducto' name='observacionproducto' value='${producto.observacionproducto}'></td>
-            //         <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
-            //     </tr>
-            // `).join('');
-
-            // document.getElementById("totalPedido").value = pedido.total;
-            // document.getElementById("slcClientes").value = pedido.cliente;
-            // document.getElementById("observacion").value = pedido.observacion;
-        });
-    }
 }
         

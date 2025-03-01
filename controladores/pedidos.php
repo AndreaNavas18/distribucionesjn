@@ -218,8 +218,9 @@ function verPedido($idPedido) {
     $sqlPedido = "SELECT id, idcliente,observacion FROM pedidos WHERE id =" . $idPedido;
     $pedido = $db->GetRow($sqlPedido);
 
-    $sqlDetalle = "SELECT idproducto, cantidad, observacionproducto, estado ".
-    "FROM detallepedidosfacturas WHERE idpedido =" . $idPedido;
+    $sqlDetalle = "SELECT dp.idproducto, dp.cantidad, dp.observacionproducto, dp.estado, pr.nombre, pr.precioventa FROM detallepedidosfacturas dp ".
+    "LEFT JOIN productos pr ON dp.idproducto = pr.id ".
+    "WHERE dp.idpedido =" . $idPedido;
     $detallepedido = $db->GetArray($sqlDetalle);
 
     return $pedido ? ["pedido" => $pedido, "detalle" => $detallepedido] : false;

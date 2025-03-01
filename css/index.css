@@ -46,7 +46,7 @@ body {
     margin-top: 30px;
     width: 80%;
 }
-.buttons-grid a {
+.buttons-grid a, button {
     background: rgba(255, 255, 255, 0.2);
     padding: 15px;
     border-radius: 15px;
@@ -56,7 +56,7 @@ body {
     font-weight: bold;
     transition: all 0.3s;
 }
-.buttons-grid a:hover {
+.buttons-grid a:hover, button:hover {
     background: rgba(255, 255, 255, 0.4);
     transform: scale(1.05);
 }
