@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $funcion = strtolower($data['funcion']);
         switch ($funcion) {
             case 'crearcliente':
-                if (isset($data['cliente'])) {
+                if (isset($data['dataCliente'])) {
                     crearCliente($data['dataCliente']);
                 } else {
                     echo json_encode(["error" => "Datos del cliente no proporcionados"]);
@@ -22,6 +22,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             case 'obtenerclientes':
                 obtenerClientes();
+                break;
+
+            case 'vercliente':
+                if (isset($data['id'])) {
+                    $cliente = verCliente($data['id']);
+
+                    if ($cliente) {
+                        $response["cliente"] = $cliente;
+                    } else {
+                        $response["error"] = "No se encontró el cliente";
+                    }
+                }
                 break;
 
             default:
@@ -42,11 +54,13 @@ function crearCliente($params) {
     $razonsocial = $params['razonsocial'] != "" ? strtoupper($params['razonsocial']) : null;
     $ubicacion = $params['ubicacion'] != "" ? strtoupper($params['ubicacion']) : null;
     $telefono = $params['telefono'] != "" ? $params['telefono'] : null;
+    $direccion = $params['direccion'] != "" ? strtoupper($params['direccion']) : null;
+    $telefono2 = $params['telefono2'] != "" ? $params['telefono2'] : null;
 
     try {
-        $sql = "INSERT INTO clientes (nombre, razonsocial, ubicacion, telefono)
-                VALUES (?, ?, ?, ?)";
-        $result = $db->Execute($sql, [$nombre, $razonsocial, $ubicacion, $telefono]);
+        $sql = "INSERT INTO clientes (nombre, razonsocial, ubicacion, telefono, direccion, telefono2)
+            VALUES (?, ?, ?, ?, ?, ?)";
+        $result = $db->Execute($sql, [$nombre, $razonsocial, $ubicacion, $telefono, $direccion, $telefono2]);
         if ($result) {
             echo json_encode(["mensaje" => "Cliente creado con éxito"]);
         } else {
@@ -60,7 +74,7 @@ function crearCliente($params) {
 function obtenerClientes() {
     global $db;
     try {
-        $sql = "SELECT id, nombre, razonsocial, ubicacion, telefono FROM clientes";
+        $sql = "SELECT id, nombre, razonsocial, ubicacion, telefono, telefono2, ruta FROM clientes";
         $result = $db->Execute($sql);
 
         if ($result) {
@@ -72,4 +86,10 @@ function obtenerClientes() {
     } catch (PDOException $e) {
         echo json_encode(["error" => "Error al obtener los clientes: " . $e->getMessage()]);
     }
+}
+
+function verCliente($idCliente) {
+    global $db;
+    $sqlCliente = "SELECT id, nombre, razonsocial, ubicacion, telefono, direccion, telefono2, ruta FROM clientes WHERE id=" . $idCliente;
+    return $db->Execute($sqlCliente)->GetArray();
 }

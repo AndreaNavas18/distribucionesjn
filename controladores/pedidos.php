@@ -77,12 +77,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 echo json_encode($response);
 
 
-function guardarPedido($aForm) {
+function  guardarPedido($aForm) {
     global $db;
     $r = false;
     $productos = $aForm['productos'];
     $cliente = $aForm['cliente'];
     $observacion = $aForm['observacion'];
+    $idPedidoEdita = $aForm['idPedido'];
     error_log("aForm: " . json_encode($aForm));
    
     try {
@@ -91,32 +92,58 @@ function guardarPedido($aForm) {
             $cantidad = $producto['cantidad'];
             $preciofinal = $producto['preciofinal'];
             $observacionproducto = $producto['observacionproducto'];
+            $sugerido = $producto['preciosugerido'];
 
             $db->StartTrans();
-            $sqlPedido = "SELECT idcliente, fecha, total, observacion FROM pedidos WHERE idcliente=?";
-            $pedido = $db->Execute($sqlPedido, [$cliente]);
+            if ($idPedidoEdita) {
+                $whereEdita = " AND id=" . $idPedidoEdita;
+            } else {
+                $whereEdita = "";
+            }
+
+            $sqlPedido = "SELECT id, idcliente, fecha, total, observacion FROM pedidos WHERE id=0" . $whereEdita;
+            $pedido = $db->Execute($sqlPedido);
+            error_log("sqlPedido: " . $sqlPedido);
             $registroPedido = [
                 "idcliente" => $cliente,
-                "fecha" => date('Y-m-d'),
                 "total" => $preciofinal,
                 "observacion" => $observacion
             ];
-            $sqlInsertPedido = $db->GetInsertSQL($pedido, $registroPedido);
-            $db->Execute($sqlInsertPedido);
-            $idPedido = $db->Insert_ID();
+            
+            if ($pedido->RecordCount() > 0) {
+                error_log("Pedido ya existe");
+                $sqlUpdatePedido = $db->GetUpdateSQL($pedido, $registroPedido);
+                $db->Execute($sqlUpdatePedido);
+                $idPedido = $idPedidoEdita;
+            } else {
+                error_log("Pedido no existe");
+                $registroPedido['fecha'] = date('Y-m-d');
+                $sqlInsertPedido = $db->GetInsertSQL($pedido, $registroPedido);
+                error_log("sqlInsertPedido: " . $sqlInsertPedido);
+                $db->Execute($sqlInsertPedido);
+                $idPedido = $db->Insert_ID();
+            }
 
+            error_log("idPedido: " . $idPedido);
 
-            $sqlDetalle = "SELECT idpedido, idproducto, cantidad, observacionproducto FROM detallepedidosfacturas WHERE idpedido=?";
-            $detalle = $db->Execute($sqlDetalle, [$idPedido]);
+            $sqlDetalle = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido FROM detallepedidosfacturas WHERE idpedido=" . $idPedido;
+            error_log("sqlDetalle: " . $sqlDetalle);
+            $detalle = $db->Execute($sqlDetalle);
             $registroDetalle = [
                 "idpedido" => $idPedido,
                 "idproducto" => $idProducto,
                 "cantidad" => $cantidad,
-                "observacionproducto" => $observacionproducto
+                "observacionproducto" => $observacionproducto,
+                "preciosugerido" => $sugerido
             ];
 
-            $sqlInsertDetalle = $db->GetInsertSQL($detalle, $registroDetalle);
-            $db->Execute($sqlInsertDetalle);
+            if ($detalle->RecordCount() > 0) {
+                $sqlUpdateDetalle = $db->GetUpdateSQL($detalle, $registroDetalle);
+                $db->Execute($sqlUpdateDetalle);
+            } else {
+                $sqlInsertDetalle = $db->GetInsertSQL($detalle, $registroDetalle);
+                $db->Execute($sqlInsertDetalle);
+            }
             
             $db->CompleteTrans();
         }
@@ -215,10 +242,10 @@ function verOrdenCompra($aForm) {
 function verPedido($idPedido) {
     global $db;
 
-    $sqlPedido = "SELECT id, idcliente,observacion FROM pedidos WHERE id =" . $idPedido;
+    $sqlPedido = "SELECT id, idcliente, observacion FROM pedidos WHERE id =" . $idPedido;
     $pedido = $db->GetRow($sqlPedido);
 
-    $sqlDetalle = "SELECT dp.idproducto, dp.cantidad, dp.observacionproducto, dp.estado, pr.nombre, pr.precioventa FROM detallepedidosfacturas dp ".
+    $sqlDetalle = "SELECT dp.idproducto, dp.cantidad, dp.observacionproducto, dp.estado, dp.preciosugerido, pr.nombre, pr.precioventa FROM detallepedidosfacturas dp ".
     "LEFT JOIN productos pr ON dp.idproducto = pr.id ".
     "WHERE dp.idpedido =" . $idPedido;
     $detallepedido = $db->GetArray($sqlDetalle);

@@ -3,18 +3,22 @@ import { SERVER, pet, initSelect2, formatearMoneda, initDataTable  } from "./bas
 document.addEventListener("DOMContentLoaded", function() {
     const vista = document.body.id;
     if (vista === "tomarPedido") {
+        const urlParams = new URLSearchParams(window.location.search);
+        const idPedido = urlParams.get('id');
+        inicialTomaPedidos(idPedido);
         listarProductos();
         obtenerClientes();
         agregarProducto();
-        guardarPedido();
+        if (idPedido) {
+            cargarDatosPedido(idPedido);
+        }
+        guardarPedido(idPedido);
     } else if (vista === "historialPedidos") {
         historialPedidos();
     } else if (vista === "ordenCompra") {
         initCalendars();
         listarProveedores();
         verOrdenCompra();
-    } else if(vista === "index") {
-        document.getElementById("tomarPedido").addEventListener("click", cargarVista);
     }
 });
 
@@ -56,42 +60,19 @@ function listarProductos() {
     }
 }
 
-function cargarVista(idPedido = null) {
-    if (idPedido) {
-        window.location.href = `vistas/tomarPedido.html?id=${idPedido}`;
-        cargarDatosPedido(idPedido);
-    } else {
-        window.location.href = "vistas/tomarPedido.html";
-    }
-}
-
-async function cargarVistaPedido(idPedido = null) {
-    //Primero necesito cargar la vista y luego tomar el contenido
-    
-    const contenido = document.getElementById("contenidoPedido");
-    
-    if (contenido) {
-    const response = await fetch("../vistas/tomarPedido.html");
-    const html = await response.text();
-        contenido.innerHTML = html;
-    
-        if (idPedido) {
-            cargarDatosPedido(idPedido);
-        }
-    
-        inicialTomaPedidos();
-    }
-}
-
 async function cargarDatosPedido(idPedido) {
     const data = await pet("controladores/pedidos.php", { funcion: "verpedido", id: idPedido });
+    const totalPedidoInput = document.getElementById("totalPedido");
+    const selectClientes = document.getElementById("slcClientes");
 
     if (data.error) {
         console.error("Error:", data.error);
         return;
     }
+    console.log(data);
 
-    document.getElementById("slcClientes").value = data.pedido.idcliente;
+    selectClientes.value = data.pedido.idcliente;
+    document.getElementById("totalPedido").value = formatearMoneda(data.pedido.total);
     document.getElementById("observacion").value = data.pedido.observacion;
 
     const tbody = document.querySelector("#tablaPedido tbody");
@@ -101,32 +82,31 @@ async function cargarDatosPedido(idPedido) {
         let fila = `
         <tr>
             <td>${producto.cantidad}</td>
-            <td>${producto.idproducto}</td>
             <td>${producto.nombre}</td>
             <td>${formatearMoneda(producto.precioventa)}</td>
             <td>${formatearMoneda(producto.cantidad * producto.precioventa)}</td>
-            <td>${producto.observacionproducto}</td>
-            <td>
-                <button class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">Eliminar</button>
-            </td>
+            <td>${formatearMoneda(producto.preciosugerido)}</td>
+            <td>${formatearMoneda(producto.cantidad * producto.preciosugerido)}</td>
+            <td><input type='text-area' class='form-control' id='observacionproducto' name='observacionproducto' value='${producto.observacionproducto || producto.observacionproducto != null ? producto.observacionproducto : ""}'></td>
+            <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
         </tr>
         `;
         tbody.innerHTML += fila;
     });
 
-    actualizarTotal();
+    actualizarTotal(totalPedidoInput);
 }
 
 function editarPedido() {
+    console.log("Editar pedido");
     const btnEditarPedido = document.querySelectorAll("#btnEditarPedido");
     btnEditarPedido.forEach(boton => {
         boton.addEventListener("click", function () {
             const idPedido = this.dataset.id;
-            cargarVista(idPedido);
+            window.location.href = `tomarPedido.html?id=${idPedido}`;
         });
     });
 }
-
 
 async function obtenerClientes() {
     const data = await pet("controladores/clientes.php", { funcion: "obtenerclientes" });
@@ -146,9 +126,17 @@ async function obtenerClientes() {
     }
 }
 
-function inicialTomaPedidos() {
+function inicialTomaPedidos(idPedido = null) {
     const divPrecios = document.getElementById("preciosPosibles");
     const selectProductos = document.getElementById("slcProductos");
+    const divTarjeta = document.getElementById("divTarjetaP");
+    const title = idPedido ? "Editar Pedido" : "Tomar Pedido";
+
+    const h1 = document.createElement("h1");
+    h1.classList.add("text-center");
+    h1.classList.add("mb-4");
+    h1.textContent = title;
+    divTarjeta.prepend(h1);
 
     $(selectProductos).on("select2:select", async function () {
         const productoSeleccionado = this.value;
@@ -211,95 +199,100 @@ async function obtenerCosto(productoId) {
 }
 
 async function agregarProducto() {
-        const btnAgregar = document.getElementById("btnAgregar");
-        const btnCantidad = document.getElementById("btnCantidad");
-        const selectProductos = document.getElementById("slcProductos");
-        const inputCantidad = document.getElementById("cantidad");
-        const tablaPedidoBody = document.querySelector("#tablaPedido tbody");
-        const tdIdProducto = document.getElementById("codigoProd");
-        const totalPedidoInput = document.getElementById("totalPedido");
-        tdIdProducto.style.display = "none";
+    const btnAgregar = document.getElementById("btnAgregar");
+    const btnCantidad = document.getElementById("btnCantidad");
+    const selectProductos = document.getElementById("slcProductos");
+    const inputCantidad = document.getElementById("cantidad");
+    const tablaPedidoBody = document.querySelector("#tablaPedido tbody");
+    const tdIdProducto = document.getElementById("codigoProd");
+    const totalPedidoInput = document.getElementById("totalPedido");
+    const divPrecios = document.getElementById("preciosPosibles");
+    tdIdProducto.style.display = "none";
 
-        if (!btnAgregar || !btnCantidad || !selectProductos || !inputCantidad || !tablaPedidoBody || !totalPedidoInput) {
-            console.error("Uno o más elementos no existen en el DOM");
-            return;
-        }
-
-        let infoProductos = [];
-
-        try {
-            const data = await pet("controladores/productos.php", { funcion: "obtenerproductos" });
-            if (data && Array.isArray(data)) {
-                infoProductos = data;
-            }
-        } catch (error) {
-            console.error("Error obteniendo productos:", error);
-        }
-    
-        btnAgregar.addEventListener("click", function () {
-            const productoSeleccionado = selectProductos.options[selectProductos.selectedIndex];
-            const cantidad = inputCantidad.value;
-
-            if (!productoSeleccionado.value || cantidad <= 0) {
-                alert("Por favor, seleccione un producto y una cantidad válida.");
-                return;
-            }
-            
-            const idProducto = productoSeleccionado.value;
-            const nombreProducto = productoSeleccionado.text;
-            const producto = infoProductos.find(prod => prod.id == idProducto);
-
-            if (!producto) {
-                console.error("Producto no encontrado en la lista.");
-                return;
-            }
-            const precioProducto = parseFloat(producto.precioventa);
-            const precioSeleccionado = document.querySelector(".precio-btn.active");
-            //primero debe existir precioPersonalizado
-            const precioPersonalizadoElement = document.getElementById("precioPersonalizado");
-            const precioManual = precioPersonalizadoElement ? precioPersonalizadoElement.value : null;
-            
-            let precioFinal;
-            if (precioManual) {
-                precioFinal = parseFloat(precioManual);
-            } else if (precioSeleccionado) {
-                precioFinal = parseFloat(precioSeleccionado.dataset.precio);
-            } else {
-                precioFinal = precioProducto;
-            }
-            
-            const subTotal = precioFinal * cantidad;
-
-            const fila = document.createElement("tr");
-            fila.setAttribute("data-id", idProducto);
-            fila.innerHTML = `
-                <td>${cantidad}</td>
-                <td>${nombreProducto}</td>
-                <td>${formatearMoneda(precioFinal)}</td>
-                <td>${formatearMoneda(subTotal)}</td>
-                <td><input type='text-area' class='form-control' id='observacionproducto' name='observacionproducto'></td>
-                <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
-            `;
-
-            fila.querySelector(".btnEliminar").addEventListener("click", function () {
-                fila.remove();
-                actualizarTotal();
-            });
-    
-            tablaPedidoBody.appendChild(fila);
-            inputCantidad.value = "";
-            $(selectProductos).val(null).trigger("change");
-    
-            actualizarTotal();
-        });
-
-        btnCantidad.addEventListener("click", function () {
-            inputCantidad.value = 12;
-        });
-
+    if (!btnAgregar || !btnCantidad || !selectProductos || !inputCantidad || !tablaPedidoBody || !totalPedidoInput) {
+        console.error("Uno o más elementos no existen en el DOM");
+        return;
     }
 
-function actualizarTotal() {
+    let infoProductos = [];
+
+    try {
+        const data = await pet("controladores/productos.php", { funcion: "obtenerproductos" });
+        if (data && Array.isArray(data)) {
+            infoProductos = data;
+        }
+    } catch (error) {
+        console.error("Error obteniendo productos:", error);
+    }
+
+    btnAgregar.addEventListener("click", function () {
+        const productoSeleccionado = selectProductos.options[selectProductos.selectedIndex];
+        const cantidad = inputCantidad.value;
+
+        if (!productoSeleccionado.value || cantidad <= 0) {
+            alert("Por favor, seleccione un producto y una cantidad válida.");
+            return;
+        }
+        
+        const idProducto = productoSeleccionado.value;
+        const nombreProducto = productoSeleccionado.text;
+        const producto = infoProductos.find(prod => prod.id == idProducto);
+
+        if (!producto) {
+            console.error("Producto no encontrado en la lista.");
+            return;
+        }
+        const precioProducto = parseFloat(producto.precioventa);
+        const precioSeleccionado = document.querySelector(".precio-btn.active");
+        const precioPersonalizadoElement = document.getElementById("precioPersonalizado");
+        const precioManual = precioPersonalizadoElement ? precioPersonalizadoElement.value : null;
+        
+        let precioFinal;
+        if (precioManual) {
+            precioFinal = parseFloat(precioManual);
+        } else if (precioSeleccionado) {
+            precioFinal = parseFloat(precioSeleccionado.dataset.precio);
+        } else {
+            precioFinal = "";
+        }
+        
+        const subTotal = precioProducto * cantidad;
+        const subSugerido = precioFinal * cantidad;
+
+        const fila = document.createElement("tr");
+        fila.setAttribute("data-id", idProducto);
+        fila.innerHTML = `
+            <td>${cantidad}</td>
+            <td>${nombreProducto}</td>
+            <td>${formatearMoneda(precioProducto)}</td>
+            <td>${formatearMoneda(subTotal)}</td>
+            <td>${formatearMoneda(precioFinal)}</td>
+            <td>${formatearMoneda(subSugerido)}</td>
+            <td><input type='text-area' class='form-control' id='observacionproducto' name='observacionproducto'></td>
+            <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
+        `;
+
+        fila.querySelector(".btnEliminar").addEventListener("click", function () {
+            fila.remove();
+            actualizarTotal(totalPedidoInput);
+        });
+
+        tablaPedidoBody.appendChild(fila);
+        inputCantidad.value = "";
+        $(selectProductos).val(null).trigger("change");
+        divPrecios.innerHTML = "";
+        divPrecios.style.display = "none";
+
+        actualizarTotal(totalPedidoInput);
+    });
+
+    btnCantidad.addEventListener("click", function () {
+        inputCantidad.value = 12;
+    });
+
+}
+
+function actualizarTotal(totalPedidoInput) {
     let total = 0;
     document.querySelectorAll("#tablaPedido tbody tr").forEach(fila => {
         const textoSubtotal = fila.children[3].textContent;
@@ -309,7 +302,7 @@ function actualizarTotal() {
     totalPedidoInput.value = formatearMoneda(total);
 }
 
-function guardarPedido() {
+function guardarPedido(idPedido = null) {
     document.getElementById("btnGuardarPedido").addEventListener("click", async function () {
         const tablaPedidoBody = document.querySelector("#tablaPedido tbody");
         if (!tablaPedidoBody) {
@@ -327,7 +320,8 @@ function guardarPedido() {
             id: parseInt(fila.getAttribute("data-id"), 10),
             cantidad: parseInt(fila.cells[0]?.textContent.trim(), 10),
             preciofinal: parseFloat(fila.cells[2]?.textContent.trim().replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.')),
-            observacionproducto: document.getElementById("observacionproducto").value
+            observacionproducto: document.getElementById("observacionproducto").value,
+            preciosugerido: parseFloat(fila.cells[4]?.textContent.trim().replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.'))
         })).filter(p => p.id && p.cantidad);
     
         if (productos.length === 0) {
@@ -337,10 +331,10 @@ function guardarPedido() {
 
         const totall = parseFloat(document.getElementById("totalPedido").value.replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.'));
     
-        // Envío los datos al servidor
         const data = await pet("controladores/pedidos.php", {
             funcion: "guardarpedido",
             datosForm: {
+                idPedido: idPedido,
                 total: totall,
                 cliente: document.getElementById("slcClientes").value,
                 observacion: document.getElementById("observacion").value,
@@ -359,6 +353,7 @@ function guardarPedido() {
         document.getElementById("slcClientes").value = "elegir";
         document.getElementById("preciosPosibles").innerHTML = "";
         document.getElementById("preciosPosibles").style.display = "none";
+        document.getElementById("observacion").value = "";
 
     });
 }
@@ -376,7 +371,7 @@ async function historialPedidos() {
                     <td>${pedido.fecha}</td>
                     <td>${pedido.cliente}</td>
                     <td>${pedido.total}</td>
-                    <td>${pedido.observacion}</td>
+                    <td>${pedido.observacion ?? ""}</td>
                     <td><button class="btn btn-primary" id="btnEditarPedido" data-id="${pedido.id}">Editar</button></td>
                 </tr>
             `).join("");
@@ -385,9 +380,9 @@ async function historialPedidos() {
         console.error("Error", data.error);
     }
 
-    initDataTable("#tablaHistorialP");
-
+    const tablaHistorial = initDataTable("#tablaHistorialP");
     editarPedido();
+    tablaHistorial.on("draw.dt", editarPedido);
 }
 
 function verOrdenCompra() {

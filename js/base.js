@@ -20,7 +20,7 @@ export async function pet(url, data) {
 
 export function initDataTable(selector, options = {}) {
     if (typeof $ !== "undefined" && $.fn.DataTable) {
-        $(selector).DataTable({
+        return $(selector).DataTable({
             paging: true,
             searching: true,
             ordering: true,
