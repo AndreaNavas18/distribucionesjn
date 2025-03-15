@@ -115,28 +115,23 @@ function eliminarCliente() {
 }
 
 async function cargarDatosCliente(idCliente) {
-    const data = await pet("controladores/clientes.php", {
-        funcion: "vercliente",
-        id: idCliente
-    });
+    const dataCliente = await pet("controladores/clientes.php", { funcion: "vercliente", id: idCliente });
 
-    console.log(data);
-
-    if (data.error) {
-        console.error("Error:", data.error);
-    } else {
-        const form = document.getElementById("formCliente");
-        if (form) {
-            form.nombre.value = data.nombre;
-            form.razonsocial.value = data.razonsocial;
-            form.ubicacion.value = data.ubicacion;
-            form.direccion.value = data.direccion;
-            form.telefono.value = data.telefono;
-            form.telefono2.value = data.telefono2;
-            form.ruta.value = data.ruta;
-        } else {
-            console.error("El formulario no existe en el DOM");
-        }
-    }
+    // if (data.error) {
+    //     console.error("Error:", data.error);
+    // } else {
+    //     const form = document.getElementById("formCliente");
+    //     if (form) {
+    //         form.nombre.value = data.nombre;
+    //         form.razonsocial.value = data.razonsocial;
+    //         form.ubicacion.value = data.ubicacion;
+    //         form.direccion.value = data.direccion;
+    //         form.telefono.value = data.telefono;
+    //         form.telefono2.value = data.telefono2;
+    //         form.ruta.value = data.ruta;
+    //     } else {
+    //         console.error("El formulario no existe en el DOM");
+    //     }
+    // }
 
 }

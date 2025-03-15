@@ -27,12 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'vercliente':
                 if (isset($data['id'])) {
                     $cliente = verCliente($data['id']);
-
-                    if ($cliente) {
-                        $response["cliente"] = $cliente;
-                    } else {
-                        $response["error"] = "No se encontró el cliente";
-                    }
+                    error_log("lo que llega " . print_r($cliente, true));
+                    // if ($cliente) {
+                    //     $response["cliente"] = $cliente;
+                    // } else {
+                    //     $response["error"] = "No se encontró el cliente";
+                    // }
                 }
                 break;
 
@@ -91,5 +91,7 @@ function obtenerClientes() {
 function verCliente($idCliente) {
     global $db;
     $sqlCliente = "SELECT id, nombre, razonsocial, ubicacion, telefono, direccion, telefono2, ruta FROM clientes WHERE id=" . $idCliente;
-    return $db->Execute($sqlCliente)->GetArray();
+    $result = $db->GetArray($sqlCliente);
+    error_log(print_r($result[0], true));
+    return $result;
 }

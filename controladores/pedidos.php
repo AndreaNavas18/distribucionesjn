@@ -52,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (isset($data['id'])) {
                     $id = $data['id'];
                     $pedido = verPedido($id);
+                    error_log("lo que llega pedido " . print_r($pedido, true));
                     if ($pedido) {
                         $response["pedido"] = $pedido['pedido'];
                         $response["detalle"] = $pedido['detalle'];
