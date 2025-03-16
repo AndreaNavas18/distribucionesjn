@@ -28,18 +28,28 @@ async function crearClientes() {
                 clienteData[key] = value.toUpperCase();
             });
 
-            console.log(clienteData);
-        
             const respuesta = await pet("controladores/clientes.php", {
                 funcion: "crearcliente",
                 dataCliente: clienteData
             });
 
-            if (respuesta.error) {
-                console.error("Error:", respuesta.error);
-            } else {
-                alert("Cliente creado correctamente");
+            if (!respuesta.error) {
+                Swal.fire({
+                    title: "¡Éxito!", 
+                    text: "Los datos se han guardado correctamente.",
+                    icon: "success",
+                    timer: 3000,
+                    showConfirmButton: false
+                });
                 form.reset();
+            } else {
+                Swal.fire({
+                    title: "Error!", 
+                    text: "Hubo un error al guardar los datos.",
+                    icon: "warning",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             }
         });
     }
@@ -49,8 +59,6 @@ async function obtenerClientes() {
     const respuesta = await pet("controladores/clientes.php", {
         funcion: "obtenerclientes"
     });
-
-    console.log(respuesta);
 
     if (respuesta.error) {
         console.error("Error:", respuesta.error);
@@ -96,22 +104,34 @@ function editarCliente() {
 
 function eliminarCliente() {
     const btnEliminarCliente = document.querySelectorAll("#btnEliminarCliente");
-    btnEliminarCliente.forEach(boton => {
-        boton.addEventListener("click", async function () {
-            const idCliente = this.dataset.id;
-            const respuesta = await pet("controladores/clientes.php", {
-                funcion: "eliminarcliente",
-                idCliente
-            });
+    // btnEliminarCliente.forEach(boton => {
+    //     boton.addEventListener("click", async function () {
+    //         const idCliente = this.dataset.id;
+    //         const respuesta = await pet("controladores/clientes.php", {
+    //             funcion: "eliminarcliente",
+    //             idCliente
+    //         });
 
-            if (respuesta.error) {
-                console.error("Error:", respuesta.error);
-            } else {
-                alert("Cliente eliminado correctamente");
-                window.location.reload();
-            }
-        });
-    });
+    //         if (!respuesta.error) {
+    //             Swal.fire({
+    //                 title: "¡Éxito!", 
+    //                 text: "Se eliminó correctamente.",
+    //                 icon: "success",
+    //                 timer: 2000,
+    //                 showConfirmButton: false
+    //             });
+    //             window.location.reload();
+    //         } else {
+    //             Swal.fire({
+    //                 title: "Error!", 
+    //                 text: respuesta.error,
+    //                 icon: "error",
+    //                 timer: 2000,
+    //                 showConfirmButton: false
+    //             });
+    //         }
+    //     });
+    // });
 }
 
 async function cargarDatosCliente(idCliente) {
@@ -120,12 +140,12 @@ async function cargarDatosCliente(idCliente) {
     if (data.error) {
         console.error("Error:", data.error);
     } else {
-        console.log(data);
+        const clienteEscogido = data.cliente[0];
         const campos = ["nombre", "razonsocial", "ubicacion", "direccion", "telefono", "telefono2", "ruta"];
         campos.forEach(campo => {
             const input = document.getElementById(campo);
-            if (input && data.cliente[campo] !== undefined) {
-                input.value = data.cliente[campo];
+            if (input && clienteEscogido[campo] !== undefined) {
+                input.value = clienteEscogido[campo];
             }
         });
     }

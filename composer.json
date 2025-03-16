@@ -2,6 +2,7 @@
     "require": {
         "catfan/medoo": "^2.1",
         "phpoffice/phpspreadsheet": "^3.4",
-        "adodb/adodb-php": "^5.22"
+        "adodb/adodb-php": "^5.22",
+        "mpdf/mpdf": "^8.2"
     }
 }

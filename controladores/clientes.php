@@ -27,7 +27,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
             
             case 'obtenerclientes':
-                // obtenerClientes();
                 $clientes = obtenerClientes();
                 if ($clientes) {
                     $response["clientes"] = $clientes;
@@ -48,19 +47,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 break;
 
+            case 'eliminarcliente':
+                if (isset($data['id'])) {
+                    // $idCliente = $data['id'];
+                    // $sql = "DELETE FROM clientes WHERE id=" . $idCliente;
+                    // $result = $db->Execute($sql);
+                    // if ($result) {
+                    //     $response["mensaje"] = "Cliente eliminado
+                    //     con éxito";
+                    // } else {
+                    //     $response["error"] = "No se pudo eliminar el cliente";
+                    // }
+                }
+                break;
+
             default:
-                // echo json_encode(["error" => "Función no válida o no especificada"]);
                 $response["error"] = "Función no válida o no especificada";
 
                 break;
             }
     } else {
-        // echo json_encode(["error" => "No se especificó ninguna función"]);
         $response["error"] = "No se especificó ninguna función";
 
     }
 } else {
-    // echo json_encode(["error" => "No se especificó ninguna función"]);
     $response["error"] = "No se especificó ninguna función";
 }
 

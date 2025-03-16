@@ -50,7 +50,13 @@ function importarProductos() {
         const fileInput = document.getElementById("excel_file_producto");
         
         if (fileInput.files.length === 0) {
-            alert("Por favor, selecciona un archivo.");
+            Swal.fire({
+                title: "Info",
+                text: "Por favor, selecciona un archivo.",
+                icon: "info",
+                timer: 2000,
+                showConfirmButton: false
+            });
             return;
         }
         
@@ -64,14 +70,32 @@ function importarProductos() {
         .then(response => response.json())
         .then(data => {
             if (data.error) {
-                alert("Hubo un error al importar los productos: " + data.error);
+                Swal.fire({
+                    title: "Error!",
+                    text: "Hubo un error al importar los productos." + data.error,
+                    icon: "error",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             } else {
-                alert("Productos importados exitosamente");
+                Swal.fire({
+                    title: "¡Éxito!",
+                    text: "Productos importados exitosamente.",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             }
         })
         .catch(error => {
             console.error("Error en la solicitud:", error);
-            alert("Ocurrió un error al subir el archivo.");
+            Swal.fire({
+                title: "Error!",
+                text: "Ocurrió un error al subir el archivo.",
+                icon: "error",
+                timer: 2000,
+                showConfirmButton: false
+            });
         });
     });
 }

@@ -179,7 +179,6 @@ function inicialTomaPedidos(idPedido = null) {
         </div>
         `;
 
-
         divPrecios.style.display = "block";
 
         document.querySelectorAll(".precio-btn").forEach(btn => {
@@ -230,7 +229,13 @@ async function agregarProducto() {
         const cantidad = inputCantidad.value;
 
         if (!productoSeleccionado.value || cantidad <= 0) {
-            alert("Por favor, seleccione un producto y una cantidad válida.");
+            Swal.fire({
+                title: "!!!", 
+                text: "Por favor, seleccione un producto y una cantidad válida.",
+                icon: "warning",
+                timer: 2000,
+                showConfirmButton: false
+            });
             return;
         }
         
@@ -306,13 +311,25 @@ function guardarPedido(idPedido = null) {
     document.getElementById("btnGuardarPedido").addEventListener("click", async function () {
         const tablaPedidoBody = document.querySelector("#tablaPedido tbody");
         if (!tablaPedidoBody) {
-            alert("Error: No se encontró la tabla de pedidos.");
+            Swal.fire({
+                title: "Error!", 
+                text: "No se encontró la tabla de pedidos.",
+                icon: "error",
+                timer: 2000,
+                showConfirmButton: false
+            });
             return;
         }
     
         const filas = tablaPedidoBody.querySelectorAll("tr");
         if (filas.length === 0) {
-            alert("No hay productos en la tabla.");
+            Swal.fire({
+                title: "Info", 
+                text: "No hay productos en la tabla.",
+                icon: "info",
+                timer: 2000,
+                showConfirmButton: false
+            });
             return;
         }
 
@@ -325,7 +342,13 @@ function guardarPedido(idPedido = null) {
         })).filter(p => p.id && p.cantidad);
     
         if (productos.length === 0) {
-            alert("Error: No se capturaron productos correctamente.");
+            Swal.fire({
+                title: "Error!",
+                text: "No se capturaron productos correctamente.",
+                icon: "error",
+                timer: 2000,
+                showConfirmButton: false
+            });
             return;
         }
 
@@ -343,10 +366,22 @@ function guardarPedido(idPedido = null) {
         });
 
         if (data.mensaje) {
-            alert(data.mensaje);
+            Swal.fire({
+                title: "¡Éxito!",
+                text: data.mensaje,
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false
+            });
             tablaPedidoBody.innerHTML = "";
         } else {
-            alert("Hubo un error al guardar el pedido");
+            Swal.fire({
+                title: "Error!",
+                text: "Hubo un error al guardar el pedido.",
+                icon: "error",
+                timer: 2000,
+                showConfirmButton: false
+            });
         }
 
         document.getElementById("totalPedido").value = "";
@@ -421,11 +456,12 @@ function verOrdenCompra() {
                     </tr>
                 `).join("");
             }
+            generarOrden();
         } else {
             console.error("Error en la respuesta del servidor:", data.error);
         }
 
-        actualizarTotal();
+        // actualizarTotal();
     });
 }
 
@@ -450,5 +486,53 @@ function initCalendars() {
     const fechaFin = document.getElementById("fechaFin");
     const hoy = new Date().toISOString().split("T")[0];
     fechaFin.value = hoy; 
+}
+
+function generarOrden() {
+    document.getElementById("btnGenerarPDF").addEventListener("click", function () {
+        $('#modalColumnas').modal('show');
+    });
+
+    document.getElementById("btnConfirmarPDF").addEventListener("click", function () {
+        $('#modalColumnas').modal('hide');
+    
+        let datos = [];
+        document.querySelectorAll("#ordenesCompra tr").forEach(row => {
+            let cols = row.querySelectorAll("td");
+    
+            let fila = {
+                producto: document.getElementById("chkProducto").checked ? cols[0]?.innerText || "" : null,
+                cantidad: document.getElementById("chkCantidad").checked ? cols[1]?.innerText || "" : null,
+                costo: document.getElementById("chkCosto").checked ? cols[2]?.innerText || "" : null,
+                proveedor: document.getElementById("chkProveedor").checked ? cols[3]?.innerText || "" : null,
+                ruta: document.getElementById("chkRuta").checked ? cols[4]?.innerText || "" : null,
+                observacion: document.getElementById("chkObservacion").checked ? cols[5]?.innerText || "" : null
+            };
+            datos.push(fila);
+        });
+    
+        fetch("../controladores/generarordenpdf.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                ordenes: datos,
+                incluirProducto: document.getElementById("chkProducto").checked,
+                incluirCantidad: document.getElementById("chkCantidad").checked,
+                incluirCosto: document.getElementById("chkCosto").checked,
+                incluirProveedor: document.getElementById("chkProveedor").checked,
+                incluirRuta: document.getElementById("chkRuta").checked,
+                incluirObservacion: document.getElementById("chkObservacion").checked
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.open(data.pdfUrl, '_blank');
+            } else {
+                console.error("Error generando PDF:", data.error);
+            }
+        })
+        .catch(error => console.error("Error generando PDF:", error));
+    });
 }
         
