@@ -77,7 +77,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 echo json_encode($response);
 
-
 function  guardarPedido($aForm) {
     global $db;
     $r = false;

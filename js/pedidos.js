@@ -115,10 +115,10 @@ async function obtenerClientes() {
         console.error("Error:", data.error);
         return;
     }
-
+    const clientesArray = JSON.parse(data.clientes);
     const clientes = document.getElementById("slcClientes");
     if (clientes) {
-        clientes.innerHTML = "<option value='elegir'>Seleccione un cliente</option>" + data.map(cliente =>
+        clientes.innerHTML = "<option value='elegir'>Seleccione un cliente</option>" + clientesArray.map(cliente =>
             `<option value="${cliente.id}">${cliente.nombre}</option>`
         ).join('');
     } else {

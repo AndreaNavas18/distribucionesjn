@@ -55,23 +55,23 @@ async function obtenerClientes() {
     if (respuesta.error) {
         console.error("Error:", respuesta.error);
     } else {
+        const clientesArray = JSON.parse(respuesta.clientes);
         const clientes = document.getElementById("clientes");
+
         if (clientes) {
-            respuesta.forEach(cliente => {
-                clientes.innerHTML += `
-                    <tr>
-                        <td>${cliente.nombre}</td>
-                        <td>${cliente.razonsocial ?? ""}</td>
-                        <td>${cliente.ubicacion ?? ""}</td>
-                        <td>${cliente.direccion ?? ""}</td>
-                        <td>${cliente.telefono ?? ""}</td>
-                        <td>${cliente.telefono2 ?? ""}</td>
-                        <td>${cliente.ruta ?? ""}</td>
-                        <td><button class="btn btn-primary" id="btnEditarCliente" data-id="${cliente.id}">Editar</button></td>
-                        <td><button class="btn btn-danger" id="btnEliminarCliente" data-id="${cliente.id}">Eliminar</button></td>
-                    </tr>
-                `;
-            });
+            clientes.innerHTML = clientesArray.map(cliente => `
+                <tr>
+                    <td>${cliente.nombre}</td>
+                    <td>${cliente.razonsocial ?? ""}</td>
+                    <td>${cliente.ubicacion ?? ""}</td>
+                    <td>${cliente.direccion ?? ""}</td>
+                    <td>${cliente.telefono ?? ""}</td>
+                    <td>${cliente.telefono2 ?? ""}</td>
+                    <td>${cliente.ruta ?? ""}</td>
+                    <td><button class="btn btn-primary" id="btnEditarCliente" data-id="${cliente.id}">Editar</button></td>
+                    <td><button class="btn btn-danger" id="btnEliminarCliente" data-id="${cliente.id}">Eliminar</button></td>
+                </tr>
+            `).join("");
         } else {
             console.error("El elemento 'clientes' no existe en el DOM");
         }
@@ -115,23 +115,18 @@ function eliminarCliente() {
 }
 
 async function cargarDatosCliente(idCliente) {
-    const dataCliente = await pet("controladores/clientes.php", { funcion: "vercliente", id: idCliente });
+    const data = await pet("controladores/clientes.php", { funcion: "vercliente", id: idCliente });
 
-    // if (data.error) {
-    //     console.error("Error:", data.error);
-    // } else {
-    //     const form = document.getElementById("formCliente");
-    //     if (form) {
-    //         form.nombre.value = data.nombre;
-    //         form.razonsocial.value = data.razonsocial;
-    //         form.ubicacion.value = data.ubicacion;
-    //         form.direccion.value = data.direccion;
-    //         form.telefono.value = data.telefono;
-    //         form.telefono2.value = data.telefono2;
-    //         form.ruta.value = data.ruta;
-    //     } else {
-    //         console.error("El formulario no existe en el DOM");
-    //     }
-    // }
-
+    if (data.error) {
+        console.error("Error:", data.error);
+    } else {
+        console.log(data);
+        const campos = ["nombre", "razonsocial", "ubicacion", "direccion", "telefono", "telefono2", "ruta"];
+        campos.forEach(campo => {
+            const input = document.getElementById(campo);
+            if (input && data.cliente[campo] !== undefined) {
+                input.value = data.cliente[campo];
+            }
+        });
+    }
 }
