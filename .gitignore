@@ -1,0 +1,2 @@
+# Ignorar archivos PDF de órdenes de compra
+pdfs/*.pdf
