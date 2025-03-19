@@ -7,6 +7,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json');
 
 // echo json_encode(["debug" => $_POST]);
+$response = array();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
@@ -14,27 +15,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $funcion = strtolower($data['funcion']);
         switch ($funcion) {
             case 'obtenerproductos':
-                obtenerProductos();
+                $productos = obtenerProductos();
+                if ($productos) {
+                    $response["productos"] = $productos;
+                } else {
+                    $response["error"] = "No se encontraron productos";
+                }
             break;
 
             case 'buscarproductos':
-                buscarProductos($data['query']);
+                if (isset($data['query'])) {
+                    $aForm = $data['query'];
+                    $resultado = buscarProductos($aForm);
+                    $response['lo que llega'] = $resultado;
+                    if($resultado) {
+                        $response["mensaje"] = "Éxito";
+                    } else {
+                        $response["error"] = "Error";
+                    }
+                }
             break;
 
             case 'obtenerproveedores':
-                obtenerProveedores();
+                $proveedores = obtenerProveedores();
+                if ($proveedores) {
+                    $response["proveedores"] = $proveedores;
+                } else {
+                    $response["error"] = "No se encontraron proveedores";
+                }
             break;
 
+            case 'crearproducto':
+                if (isset($data['dataProducto'])) {
+                    $aForm = $data['dataProducto'];
+                    $resultado = crearProducto($aForm);
+                    $response['lo que llega'] = $resultado;
+                    if($resultado) {
+                        $response["mensaje"] = "Producto guardado con éxito";
+                    } else {
+                        $response["error"] = "Error al guardar el producto";
+                    }
+                }
+                break;
+
             default:
-                echo json_encode(["error" => "Función no válida o no especificada"]);
+                $response["error"] = "Función no válida o no especificada";
             break;
         }
     } else {
-        echo json_encode(["error" => "No se especificó ninguna función"]);
+        $response["error"] = "No se especificó ninguna función";
     }
 } else {
-    echo json_encode(["error" => "No se especificó ninguna función"]);
+    $response["error"] = "No se especificó ninguna función";
 }
+
+echo json_encode($response);
 
 function obtenerProductos() {
     global $db;
@@ -44,12 +79,12 @@ function obtenerProductos() {
         $productos = $db->GetArray($sql);
 
         if (count($productos) > 0) {
-            echo json_encode($productos);
+            return $productos;
         } else {
-            echo json_encode(["mensaje" => "No se encontraron productos"]);
+            return ["mensaje" => "No se encontraron productos"];
         }
     } catch (Exception $e) {
-        echo json_encode(["error" => "Error al obtener los productos: " . $e->getMessage()]);
+        return ["error" => "Error al obtener los productos: " . $e->getMessage()];
     }
 }
 
@@ -67,12 +102,12 @@ function buscarProductos($query) {
         }
 
         if (count($productos) > 0) {
-            echo json_encode($productos);
+            return $productos;
         } else {
-            echo json_encode(["mensaje" => "No se encontraron productos"]);
+            return ["mensaje" => "No se encontraron productos"];
         }
     } catch (Exception $e) {
-        echo json_encode(["error" => "Error al buscar productos: " . $e->getMessage()]);
+        return ["error" => "Error al buscar productos: " . $e->getMessage()];
     }
 }
 
@@ -83,8 +118,8 @@ function obtenerProveedores() {
     $result = $db->Execute($sql);
     if ($result) {
         $proveedores = $result->GetArray();
-        echo json_encode($proveedores);
+        return $proveedores;
     } else {
-        echo json_encode(["mensaje" => "No se encontraron proveedores"]);
+        return ["mensaje" => "No se encontraron proveedores"];
     }
 }

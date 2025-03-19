@@ -8,18 +8,20 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (vista === "index") {
         inicial();
         importarProductos();
+    } else if (vista === "crearProducto") {
+        listarProveedores();
+        crearProducto();
     }
 });
 
 async function verProductos() {
     const data = await pet("controladores/productos.php", {funcion: "obtenerproductos"});
-
-    if (data && Array.isArray(data)) {
+    if (data.productos && Array.isArray(data.productos)) {
         const productos = document.getElementById("productos");
         if (productos) {
             productos.innerHTML = "";
 
-            for (const producto of data) {
+            for (const producto of data.productos) {
                 const costoProducto = parseFloat(producto.costo);
                 productos.innerHTML += `
                 <tr>
@@ -110,4 +112,66 @@ function inicial() {
         let fileName = this.files[0] ? this.files[0].name : "Seleccionar Archivo";
         document.getElementById("label_cliente").innerHTML = `<i class="fa-solid fa-file-arrow-up"></i> ${fileName}`;
     });
+}
+
+function crearProducto() {
+    const form = document.getElementById("formCrearProducto");
+
+    if (form) {
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+
+            const productoData = {};
+            formData.forEach((value, key) => {
+                productoData[key] = value.toUpperCase();
+            });
+
+            const respuesta = await pet("controladores/productos.php", {
+                funcion: "crearproducto",
+                dataProducto: productoData
+            });
+
+            if (!respuesta.error) {
+                Swal.fire({
+                    title: "¡Éxito!", 
+                    text: "Los datos se han guardado correctamente.",
+                    icon: "success",
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                form.reset();
+            } else {
+                Swal.fire({
+                    title: "Error!", 
+                    text: "Hubo un error al guardar los datos.",
+                    icon: "warning",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        });
+
+    }
+
+}
+
+async function listarProveedores() {
+    console.log("listarProveedores");
+    const selectProveedores = document.getElementById("idproveedor");
+    if(selectProveedores) {
+        const data = await pet("controladores/productos.php", { funcion: "obtenerproveedores" });
+
+        if (data.error) {
+            console.error("Error:", data.error);
+            return;
+        } else {
+            const proveedores = data.proveedores;
+            selectProveedores.innerHTML = "<option value='elegir'>Elegir los proveedores</option>" + 
+            proveedores.map(proveedor =>
+                `<option value="${proveedor.id}">${proveedor.proveedor}</option>`
+            ).join('');
+        }
+    }
 }

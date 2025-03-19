@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-async function crearClientes() {
+function crearClientes() {
     const form = document.getElementById("formCliente");
     
     if (form) { 
