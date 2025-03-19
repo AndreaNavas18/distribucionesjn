@@ -47,20 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 break;
 
-            case 'eliminarcliente':
-                if (isset($data['id'])) {
-                    // $idCliente = $data['id'];
-                    // $sql = "DELETE FROM clientes WHERE id=" . $idCliente;
-                    // $result = $db->Execute($sql);
-                    // if ($result) {
-                    //     $response["mensaje"] = "Cliente eliminado
-                    //     con éxito";
-                    // } else {
-                    //     $response["error"] = "No se pudo eliminar el cliente";
-                    // }
-                }
-                break;
-
             default:
                 $response["error"] = "Función no válida o no especificada";
 

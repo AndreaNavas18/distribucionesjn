@@ -67,7 +67,7 @@ foreach ($ordenes as $orden) {
     if ($incluirCosto) $html .= "<td>" . (($orden['costo'] != 'null') ? $orden['costo'] : '') . "</td>";
     if ($incluirProveedor) $html .= "<td>" . (($orden['proveedor'] != 'null') ? $orden['proveedor'] : '') . "</td>";
     if ($incluirRuta) $html .= "<td>" . (($orden['ruta'] != 'null') ? $orden['ruta'] : '') . "</td>";
-if ($incluirObservacion) $html .= "<td>" . (($orden['observacion'] != 'null') ? $orden['observacion'] : '') . "</td>";
+    if ($incluirObservacion) $html .= "<td>" . (($orden['observacion'] != 'null') ? $orden['observacion'] : '') . "</td>";
     $html .= "</tr>";
 }
 
@@ -79,7 +79,7 @@ $pdfFileName = $pdfDir . DIRECTORY_SEPARATOR . "ordendecompra_" . date("YmdHis")
 $mpdf->Output($pdfFileName, "F");
 
 echo json_encode([
-    "success" => true, 
+    "success" => true,
     "pdfUrl" => "/distribucionesjn/pdfs/" . basename($pdfFileName)
 ]);
 exit;

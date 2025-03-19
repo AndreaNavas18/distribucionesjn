@@ -77,7 +77,6 @@ async function obtenerClientes() {
                     <td>${cliente.telefono2 ?? ""}</td>
                     <td>${cliente.ruta ?? ""}</td>
                     <td><button class="btn btn-primary" id="btnEditarCliente" data-id="${cliente.id}">Editar</button></td>
-                    <td><button class="btn btn-danger" id="btnEliminarCliente" data-id="${cliente.id}">Eliminar</button></td>
                 </tr>
             `).join("");
         } else {
@@ -88,8 +87,6 @@ async function obtenerClientes() {
     const tablaClientes = initDataTable("#tablaClientes");
     editarCliente();
     tablaClientes.on("draw", editarCliente);
-    eliminarCliente();
-    tablaClientes.on("draw", eliminarCliente);
 }
 
 function editarCliente() {
@@ -100,38 +97,6 @@ function editarCliente() {
             window.location.href = `crearCliente.html?id=${idCliente}`;
         });
     });
-}
-
-function eliminarCliente() {
-    const btnEliminarCliente = document.querySelectorAll("#btnEliminarCliente");
-    // btnEliminarCliente.forEach(boton => {
-    //     boton.addEventListener("click", async function () {
-    //         const idCliente = this.dataset.id;
-    //         const respuesta = await pet("controladores/clientes.php", {
-    //             funcion: "eliminarcliente",
-    //             idCliente
-    //         });
-
-    //         if (!respuesta.error) {
-    //             Swal.fire({
-    //                 title: "¡Éxito!", 
-    //                 text: "Se eliminó correctamente.",
-    //                 icon: "success",
-    //                 timer: 2000,
-    //                 showConfirmButton: false
-    //             });
-    //             window.location.reload();
-    //         } else {
-    //             Swal.fire({
-    //                 title: "Error!", 
-    //                 text: respuesta.error,
-    //                 icon: "error",
-    //                 timer: 2000,
-    //                 showConfirmButton: false
-    //             });
-    //         }
-    //     });
-    // });
 }
 
 async function cargarDatosCliente(idCliente) {
