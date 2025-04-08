@@ -2,8 +2,6 @@ import { SERVER, pet, formatearMoneda, initDataTable  } from "./base.js";
 
 let idProductoEditando = null;
 let tablaProductosDT;
-const dialog = document.getElementById("dialogProducto");
-const btnGuardar = document.getElementById("btnGrabarProd");
 
 document.addEventListener("DOMContentLoaded", function() {
     const vista = document.body.id;
@@ -23,40 +21,52 @@ async function verProductos() {
 
     if (data.productos && Array.isArray(data.productos)) {
         const tbody = document.getElementById("productos");
-        const productos = document.getElementById("productos");
-        if (productos) {
-            productos.innerHTML = data.productos.map(producto => {
-                const costoProducto = parseFloat(producto.costo);
-                return `
-                    <tr data-id="${producto.id}">
-                        <td>${producto.id}</td>
-                        <td>${producto.nombre}</td>
-                        <td>${formatearMoneda(producto.precioventa)}</td>
-                        <td>${formatearMoneda(costoProducto)}</td>
-                        <td>${formatearMoneda(producto.precioventa - costoProducto)}</td>
-                        <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,25))}</td>
-                        <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,15))}</td>
-                        <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,10))}</td>
-                        <td><button class="btn btn-primary btnEditarProducto" data-id="${producto.id}"><i class="fa-solid fa-pen-to-square"></i></button></td>
-                    </tr>
-                `;
-            }).join("");
-        }
-        const tablaProductosDT = initDataTable("#tablaProductos");
-        tablaProductosDT.on("init", function () {
-            editarProducto();
-            tablaProductosDT.on("draw", editarProducto);
-        });
+        tbody.innerHTML = data.productos.map(producto => {
+            const costoProducto = parseFloat(producto.costo);
+            return `
+                <tr data-id="${producto.id}">
+                    <td>${producto.id}</td>
+                    <td>${producto.nombre}</td>
+                    <td>${formatearMoneda(producto.precioventa)}</td>
+                    <td>${formatearMoneda(costoProducto)}</td>
+                    <td>${formatearMoneda(producto.precioventa - costoProducto)}</td>
+                    <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,25))}</td>
+                    <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,15))}</td>
+                    <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,10))}</td>
+                    <td><button class="btn btn-primary btnEditarProducto" data-id="${producto.id}"><i class="fa-solid fa-pen-to-square"></i></button></td>
+                </tr>
+            `;
+        }).join("");
+        
+        tablaProductosDT = initDataTable("#tablaProductos");
+        changeProductos();
     } else {
         console.error("Error:", data.error);
     }
 }
 
-function editarProducto() {
+function changeProductos() {
+    const dialog = document.getElementById("dialogProducto");
+    const btnGuardar = document.getElementById("btnGrabarProd");
     const botones = document.querySelectorAll(".btnEditarProducto");
-    const dialog = document.querySelector("#dialogProducto");
     const cerrarDialog = document.querySelector("#btnCloseDialog");
-    const btnGuardar = document.querySelector("#btnGrabarProd");
+
+    document.querySelector("#tablaProductos tbody").addEventListener("click", (e) => {
+        const btn = e.target.closest(".btnEditarProducto");
+        if (!btn) return;
+    
+        const id = btn.getAttribute("data-id");
+        idProductoEditando = id;
+    
+        const fila = btn.closest("tr");
+        const celdas = fila.querySelectorAll("td");
+    
+        document.getElementById("nombre").value = celdas[1].textContent;
+        document.getElementById("precioventa").value = parseFloat(celdas[2].textContent.replace(/[^0-9.]/g, ""));
+        document.getElementById("costo").value = parseFloat(celdas[3].textContent.replace(/[^0-9.]/g, ""));
+    
+        dialog.showModal();
+    });
 
     botones.forEach(boton => {
         boton.addEventListener("click", async () => {
@@ -82,48 +92,54 @@ function editarProducto() {
     cerrarDialog.addEventListener("click", () => {
         dialog.close();
     });
-
+    
     btnGuardar.addEventListener("click", async () => {
         const producto = {
             id: idProductoEditando,
             nombre: document.getElementById("nombre").value,
-            precioventa: document.getElementById("precioventa").value,
-            costo: document.getElementById("costo").value
+            precioventa: parseFloat(document.getElementById("precioventa").value),
+            costo: parseFloat(document.getElementById("costo").value)
         };
-        const data = await pet("controladores/productos.php", { funcion: "editarproducto", producto: JSON.stringify(producto) });
+    
+        const data = await pet("controladores/productos.php", {
+            funcion: "editarproducto",
+            producto: JSON.stringify(producto)
+        });
+    
         if (data.error) {
             console.error("Error:", data.error);
-        } else {
-            const fila = $(`#tablaProductos tbody tr[data-id="${producto.id}"]`);
-            if (fila.length) {
-                tablaProductosDT.row(fila).data([
-                    producto.id,
-                    producto.nombre,
-                    formatearMoneda(producto.precioventa),
-                    formatearMoneda(producto.costo),
-                    formatearMoneda(producto.precioventa - producto.costo),
-                    formatearMoneda(producto.costo + calcularPorcentaje(producto.costo, 25)),
-                    formatearMoneda(producto.costo + calcularPorcentaje(producto.costo, 15)),
-                    formatearMoneda(producto.costo + calcularPorcentaje(producto.costo, 10)),
-                    `<button class="btn btn-primary btnEditarProducto" data-id="${producto.id}">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </button>`
-                ]).draw();
-        
-                editarProducto();
-            }
-            Swal.fire({
-                title: "¡Éxito!",
-                text: "Producto editado exitosamente.",
-                icon: "success",
-                timer: 2000,
-                showConfirmButton: false
-            });
-            dialog.close();
+            return;
         }
+    
+        const fila = $(`#tablaProductos tbody tr[data-id="${producto.id}"]`);
+        if (fila.length) {
+            const costo = producto.costo;
+            tablaProductosDT.row(fila).data([
+                producto.id,
+                producto.nombre,
+                formatearMoneda(producto.precioventa),
+                formatearMoneda(costo),
+                formatearMoneda(producto.precioventa - costo),
+                formatearMoneda(costo + calcularPorcentaje(costo, 25)),
+                formatearMoneda(costo + calcularPorcentaje(costo, 15)),
+                formatearMoneda(costo + calcularPorcentaje(costo, 10)),
+                `<button class="btn btn-primary btnEditarProducto" data-id="${producto.id}">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </button>`
+            ]).draw();
+        }
+    
+        Swal.fire({
+            title: "¡Éxito!",
+            text: "Producto editado exitosamente.",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false
+        });
+    
+        dialog.close();
     });
 }
-
 
 function calcularPorcentaje(valor,porcentaje) {
     return (valor * porcentaje) / 100;

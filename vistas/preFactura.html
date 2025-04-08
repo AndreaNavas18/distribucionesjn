@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre Factura</title>
+    <link rel="stylesheet" href="../css/pedido.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+
+    <!-- jQuery-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap JS y otros scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body id="prefactura" class="bg-light">
+    <div id="cabecera"></div>
+    <div class="container mt-4" id="contenidoPedido">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div id="divTarjetaP" class="card shadow p-4">
+                    <h1 class="text-center mb-4">Pre Factura</h1>
+                    <form id="formPedido">
+                        <div class="mb-3">
+                            <label for="cliente" class="form-label">
+                                <h5>Cliente</h5>
+                            </label>
+                            <select class="form-select" name="cliente" id="slcClientes">
+                                <option value="elegir">Elegir un cliente</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="producto" class="form-label">
+                                <h5>Producto</h5>
+                            </label>
+                            <select class="form-select" name="producto" id="slcProductos">
+                                <option></option>
+                            </select>
+                        </div>
+
+                        <div id="preciosPosibles" class="mb-3" style="display: none;">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="cantidad" class="form-label">
+                                <h5>Cantidad</h5>
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="cantidad" id="cantidad">
+                                <button class="btn btn-outline-secondary" type="button" id="btnCantidad">DOCENA</button>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <button class="btn btn-primary btn-lg w-100" type="button" id="btnAgregar">Añadir</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-10 mt-4">
+                <div class="card shadow p-4">
+                    <div class="table-responsive">
+                        <table id="tablaPreFactura" class="table table-striped table-hover table-bordered">
+                            <thead class="table-dark text-center">
+                                <tr>
+                                    <th>Cantidad Pedida</th>
+                                    <th id="codigoProd">Código</th>
+                                    <th>Producto</th>
+                                    <th>Valor Unitario</th>
+                                    <th>Subtotal</th>
+                                    <th>Precio Sugerido</th>
+                                    <th>Subtotal Sugerido</th>
+                                    <th>Observacion</th>
+                                    <th>Acciones</th>
+                                    <th>Cantidad empacada</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="total" class="form-label">
+                            <h5>Total</h5>
+                        </label>
+                        <input class="form-control form-control-lg text-center" type="text" name="total" id="totalPedido" disabled>
+                    </div>
+
+                    <div class="mt-3">
+                        <label for="observacion" class="form-label">
+                            <h5>Observaciones</h5>
+                        </label>
+                        <textarea class="form-control" name="observacion" id="observacion" rows="4"></textarea>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <button class="btn btn-success btn-lg w-100" id="btnGuardarPedido">Guardar Pedido</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { cargarCabecera } from "../js/base.js";
+        cargarCabecera();
+    </script>
+    <script type="module" src="../js/facturas.js"></script>
+</body>
+
+</html>
