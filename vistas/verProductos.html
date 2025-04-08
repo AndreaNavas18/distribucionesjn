@@ -39,9 +39,11 @@
                                     <th>Nombre</th>
                                     <th>Precio Venta</th>
                                     <th>Costo</th>
+                                    <th>Utilidad</th>
                                     <th>25%</th>
                                     <th>15%</th>
                                     <th>10%</th>
+                                    <th>Accion</th>
                                 </tr>
                             </thead>
                             <tbody id="productos">
@@ -53,6 +55,29 @@
             </div>
         </div>
     </div>
+    <dialog id="dialogProducto" class="modalProducto">
+        <h1 class="text-center mb-4">Editar producto</h1>
+        <form id="formEditarProducto" method="dialog">
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre:</label>
+                <input type="text" class="form-control" id="nombre" name="nombre">
+            </div>
+            <div class="mb-3">
+                <label for="costo" class="form-label">Costo:</label>
+                <input type="number" class="form-control" id="costo" name="costo">
+            </div>
+            <div class="mb-3">
+                <label for="precioventa" class="form-label">Precio venta:</label>
+                <input type="number" class="form-control" id="precioventa" name="precioventa">
+            </div>
+            <div class="text-center mt-3">
+                <button class="btn btn-primary btn-lg w-100" type="button" id="btnGrabarProd">Guardar Cambios</button>
+            </div>
+            <div class="text-center mt-3">
+                <button id="btnCloseDialog" type="button" class="btn btn-secondary btn-lg w-100">Cerrar</button>
+            </div>
+        </form>
+    </dialog>
 
     <script type="module">
         import { cargarCabecera } from "../js/base.js";

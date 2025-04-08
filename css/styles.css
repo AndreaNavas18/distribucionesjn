@@ -115,6 +115,23 @@ body {
     width: 90%;
 }
 
+.modalProducto {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 370px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    transform: translateY(-20px);
+    border: 1px solid var(--bg-general);
+}
+
+dialog:not([open]) {
+    display: none;
+}
+
 /*Estilos ordenCompra */
 select[multiple]:focus {
     border-color: #007bff;

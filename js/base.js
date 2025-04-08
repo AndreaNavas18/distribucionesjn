@@ -46,7 +46,6 @@ export function initDataTable(selector, options = {}) {
     } else {
         console.error("jQuery o DataTables no están cargados.");
     }
-
 }
 
 export function initSelect2(selector, options = {}) {

@@ -475,10 +475,14 @@ async function listarProveedores() {
             return;
         }
 
-        selectProveedores.innerHTML = "<option value='elegir'>Todos los proveedores</option>" + 
-        data.map(proveedor =>
-            `<option value="${proveedor.id}">${proveedor.proveedor}</option>`
-        ).join('');
+        if (Array.isArray(data.proveedores)) {
+            selectProveedores.innerHTML = "<option value='elegir'>Todos los proveedores</option>" + 
+            data.proveedores.map(proveedor =>
+                `<option value="${proveedor.id}">${proveedor.proveedor}</option>`
+            ).join('');
+        } else {
+            selectProveedores.innerHTML = "<option value=''>No hay proveedores registrados</option>";
+        }
     }
 }
 

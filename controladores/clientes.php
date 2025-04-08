@@ -49,9 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             default:
                 $response["error"] = "Función no válida o no especificada";
-
                 break;
-            }
+        }
     } else {
         $response["error"] = "No se especificó ninguna función";
 
