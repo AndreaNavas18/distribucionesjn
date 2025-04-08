@@ -8,6 +8,7 @@ header('Content-Type: application/json');
 
 $response = array();
 // echo json_encode(["debug" => $_POST]);
+$response = array();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
@@ -43,6 +44,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $response['producto'] = editarProducto($aForm);
                 }
             break;
+
+            case 'crearproducto':
+                if (isset($data['dataProducto'])) {
+                    $aForm = $data['dataProducto'];
+                    $resultado = crearProducto($aForm);
+                    $response['lo que llega'] = $resultado;
+                    if($resultado) {
+                        $response["mensaje"] = "Producto guardado con éxito";
+                    } else {
+                        $response["error"] = "Error al guardar el producto";
+                    }
+                }
+                break;
 
             default:
                 $response["error"] = "Función no válida o no especificada";

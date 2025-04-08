@@ -53,7 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else {
         $response["error"] = "No se especificó ninguna función";
-
     }
 } else {
     $response["error"] = "No se especificó ninguna función";
