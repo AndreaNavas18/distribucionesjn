@@ -20,21 +20,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
 async function verProductos() {
     const data = await pet("controladores/productos.php", {funcion: "obtenerproductos"});
-<<<<<<< HEAD
 
     if (data.productos && Array.isArray(data.productos)) {
         const tbody = document.getElementById("productos");
         const productos = document.getElementById("productos");
         if (productos) {
             productos.innerHTML = data.productos.map(producto => {
-=======
-    if (data.productos && Array.isArray(data.productos)) {
-        const productos = document.getElementById("productos");
-        if (productos) {
-            productos.innerHTML = "";
-
-            for (const producto of data.productos) {
->>>>>>> b785b8b1ac4b7f18ffba96d755e365c0f8a47f19
                 const costoProducto = parseFloat(producto.costo);
                 return `
                     <tr data-id="${producto.id}">
