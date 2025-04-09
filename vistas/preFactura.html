@@ -36,7 +36,6 @@
                                 <h5>Cliente</h5>
                             </label>
                             <select class="form-select" name="cliente" id="slcClientes">
-                                <option value="elegir">Elegir un cliente</option>
                             </select>
                         </div>
 
@@ -87,16 +86,9 @@
                                     <th>Cantidad empacada</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tbodyPreFactura">
                             </tbody>
                         </table>
-                    </div>
-
-                    <div class="mt-4">
-                        <label for="total" class="form-label">
-                            <h5>Total</h5>
-                        </label>
-                        <input class="form-control form-control-lg text-center" type="text" name="total" id="totalPedido" disabled>
                     </div>
 
                     <div class="mt-3">
@@ -107,7 +99,7 @@
                     </div>
 
                     <div class="mt-4 text-center">
-                        <button class="btn btn-success btn-lg w-100" id="btnGuardarPedido">Guardar Pedido</button>
+                        <button class="btn btn-success btn-lg w-100" id="btnGuardarPedido">Guardar Cambios</button>
                     </div>
                 </div>
             </div>
