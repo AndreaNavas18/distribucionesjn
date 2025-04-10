@@ -48,7 +48,7 @@ function listarProductos() {
                         return { results: [] };
                     }
                     return {
-                        results: data.map(producto => ({
+                        results: data.productos.map(producto => ({
                             id: producto.id,
                             text: producto.nombre
                         }))

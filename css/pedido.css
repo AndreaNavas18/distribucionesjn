@@ -94,3 +94,9 @@
     width: 100px;
     height: 50px;
 }
+
+/* estilos prefactura */
+.fila-no-llego td {
+    background-color: #ffe6e6 !important;
+    color: #b30000 !important;
+}

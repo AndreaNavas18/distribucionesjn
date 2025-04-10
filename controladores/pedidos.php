@@ -225,10 +225,12 @@ function verPedido($idPedido) {
     "WHERE pd.id =" . $idPedido;
     $pedido = $db->GetRow($sqlPedido);
 
-    $sqlDetalle = "SELECT dp.idproducto, dp.cantidad, dp.observacionproducto, dp.estado, dp.preciosugerido, pr.nombre, pr.precioventa FROM detallepedidosfacturas dp ".
+    $sqlDetalle = "SELECT dp.id, dp.idproducto, dp.cantidad, dp.observacionproducto, dp.estado, dp.preciosugerido, pr.nombre, pr.precioventa, dp.faltante FROM detallepedidosfacturas dp ".
     "LEFT JOIN productos pr ON dp.idproducto = pr.id ".
     "WHERE dp.idpedido =" . $idPedido;
     $detallepedido = $db->GetArray($sqlDetalle);
+
+    error_log("SQL Pedido: " . $sqlPedido);
 
     return $pedido ? ["pedido" => $pedido, "detalle" => $detallepedido] : false;
 }

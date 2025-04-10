@@ -8,7 +8,6 @@ header('Content-Type: application/json');
 
 $response = array();
 // echo json_encode(["debug" => $_POST]);
-$response = array();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
