@@ -100,3 +100,8 @@
     background-color: #ffe6e6 !important;
     color: #b30000 !important;
 }
+
+.fila-ok td {
+    background-color: #e6fff0 !important;
+    color: #2d8a44 !important;
+}

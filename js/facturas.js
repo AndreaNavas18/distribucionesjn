@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", function() {
         listarProductos();
         obtenerClientes();
         cargarPreFactura(idPedido);
-        guardarPreFactura(idPedido);
     } else if (vista === "pedidosActivos") {
         inicialPreFactura();
     }
@@ -125,42 +124,89 @@ async function cargarPreFactura(idPedido) {
     const tbody = document.querySelector("#tablaPreFactura tbody");
     tbody.innerHTML = "";
 
-    data.detalle.forEach((producto) => {
+    data.detalle.forEach((detallepedido) => {
         let fila = `
-        <tr>
-            <td id='cantidadBD'>${producto.cantidad}</td>
-            <td>${producto.nombre}</td>
-            <td>${formatearMoneda(producto.precioventa)}</td>
-            <td>${formatearMoneda(producto.cantidad * producto.precioventa)}</td>
-            <td>${formatearMoneda(producto.preciosugerido)}</td>
-            <td>${formatearMoneda(producto.cantidad * producto.preciosugerido)}</td>
-            <td><input type='text-area' class='form-control' id='observacionproducto' name='observacionproducto' value='${producto.observacionproducto || producto.observacionproducto != null ? producto.observacionproducto : ""}'></td>
-            <td><button class="btn btn-danger btnNoLlego" data-id=${producto.id}>No llegó</button></td>
-            <td><input type='number' class='form-control' id='cantempacar' name='cantempacar' value='${(producto.faltante) ? producto.cantidad-producto.faltante : ""}'></td>
+        <tr data-id="${detallepedido.id}">
+            <td id='cantidadBD'>${detallepedido.cantidad}</td>
+            <td>${detallepedido.nombre}</td>
+            <td>${formatearMoneda(detallepedido.precioventa)}</td>
+            <td>${formatearMoneda(detallepedido.cantidad * detallepedido.precioventa)}</td>
+            <td>${formatearMoneda(detallepedido.preciosugerido)}</td>
+            <td>${formatearMoneda(detallepedido.cantidad * detallepedido.preciosugerido)}</td>
+            <td><input type='text-area' class='form-control' id='observacionproducto' name='observacionproducto' value='${detallepedido.observacionproducto || detallepedido.observacionproducto != null ? detallepedido.observacionproducto : ""}'></td>
+            <td class="btn-group">
+                <button class="btn btn-danger btnNoLlego" data-id=${detallepedido.id}>No llegó</button>
+                <button class="btn btn-primary btnOK" data-id=${detallepedido.id}>Completo</button>
+            </td>
+            <td><input type='number' class='form-control' id='cantempacar' name='cantempacar' value='${(detallepedido.faltante) ? detallepedido.cantidad-detallepedido.faltante : ""}'></td>
         </tr>
         `;
         tbody.innerHTML += fila;
     });
 
-    changesPrefactura();
+    changesPrefactura(idPedido);
 }
 
-function changesPrefactura() {
+function changesPrefactura(idPedido) {
     const btnNoLlego = document.querySelectorAll(".btnNoLlego");
+    const btnOK = document.querySelectorAll(".btnOK");
+    const btnGuardar = document.getElementById("btnGuardarPrefactura");
+
     btnNoLlego.forEach(boton => {
         boton.addEventListener("click", async function () {
             console.log("CLICK No llegó");
             const fila = this.closest("tr");
             fila.classList.toggle("fila-no-llego");
             const cantidadInput = fila.querySelector("#cantempacar");
-            const cantidadBD = fila.querySelector("#cantidadBD").textContent;
             if (fila.classList.contains("fila-no-llego")) {
-                cantidadInput.value = cantidadBD;
-            } else {
                 cantidadInput.value = "";
+                fila.classList.remove("fila-ok");
             }
         });
     });
-}
 
-function guardarPreFactura(idPedido) {}
+    btnOK.forEach(boton => {
+        boton.addEventListener("click", async function () {
+            console.log("CLICK OK");
+            const fila = this.closest("tr");
+            fila.classList.toggle("fila-ok");
+            const cantidadInput = fila.querySelector("#cantempacar");
+            if (fila.classList.contains("fila-ok")) {
+                cantidadInput.value = fila.querySelector("#cantidadBD").textContent;
+                fila.classList.remove("fila-no-llego");
+            }
+        });
+    });
+
+    btnGuardar.addEventListener("click", async function () {
+        const tbody = document.querySelector("#tablaPreFactura tbody");
+        const filas = tbody.querySelectorAll("tr");
+        const cambios = Array.from(filas).map(fila => {
+            const iddetalle = fila.getAttribute("data-id");
+            const cantidadempacada = fila.querySelector("#cantempacar").value;
+            const observacion = fila.querySelector("#observacionproducto").value;
+            return { iddetalle, cantidadempacada, observacion };
+        });
+        console.log(cambios);
+        const data = await pet("controladores/facturas.php", { funcion: "guardarprefactura", idpedido: idPedido, cambios: cambios });
+        if (data.mensaje) {
+            Swal.fire({
+                title: "¡Éxito!",
+                text: data.mensaje,
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false
+            });
+            tablaPedidoBody.innerHTML = "";
+        } else {
+            Swal.fire({
+                title: "Error!",
+                text: "Hubo un error al guardar la prefactura.",
+                icon: "error",
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+        console.log(data);
+    });
+}

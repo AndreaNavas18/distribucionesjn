@@ -73,41 +73,41 @@ function  guardarPedido($aForm) {
     $cliente = $aForm['cliente'];
     $observacion = $aForm['observacion'];
     $idPedidoEdita = $aForm['idPedido'];
+    if ($idPedidoEdita) {
+        $whereEdita = "id=" . $idPedidoEdita;
+    } else {
+        $whereEdita = "id=0";
+    }
+    error_log("aForm: " . print_r($aForm, true));  
     try {
+        $db->StartTrans();
+        $sqlPedido = "SELECT id, idcliente, fecha, total, observacion FROM pedidos WHERE " . $whereEdita;
+        $pedido = $db->Execute($sqlPedido);
+        $registroPedido = [
+            "idcliente" => $cliente,
+            "total" => $aForm['total'],
+            "observacion" => $observacion
+        ];
+        
+        if ($pedido->RecordCount() > 0) {
+            $sqlUpdatePedido = $db->GetUpdateSQL($pedido, $registroPedido);
+            $db->Execute($sqlUpdatePedido);
+            $idPedido = $idPedidoEdita;
+        } else {
+            $registroPedido['fecha'] = date('Y-m-d');
+            $sqlInsertPedido = $db->GetInsertSQL($pedido, $registroPedido);
+            $db->Execute($sqlInsertPedido);
+            $idPedido = $db->Insert_ID();
+        }
+        
         foreach ($productos as $producto) {
             $idProducto = $producto['id'];
             $cantidad = $producto['cantidad'];
-            $preciofinal = $producto['preciofinal'];
             $observacionproducto = $producto['observacionproducto'];
             $sugerido = $producto['preciosugerido'];
 
-            $db->StartTrans();
-            if ($idPedidoEdita) {
-                $whereEdita = " AND id=" . $idPedidoEdita;
-            } else {
-                $whereEdita = "";
-            }
-
-            $sqlPedido = "SELECT id, idcliente, fecha, total, observacion FROM pedidos WHERE id=0" . $whereEdita;
-            $pedido = $db->Execute($sqlPedido);
-            $registroPedido = [
-                "idcliente" => $cliente,
-                "total" => $preciofinal,
-                "observacion" => $observacion
-            ];
-            
-            if ($pedido->RecordCount() > 0) {
-                $sqlUpdatePedido = $db->GetUpdateSQL($pedido, $registroPedido);
-                $db->Execute($sqlUpdatePedido);
-                $idPedido = $idPedidoEdita;
-            } else {
-                $registroPedido['fecha'] = date('Y-m-d');
-                $sqlInsertPedido = $db->GetInsertSQL($pedido, $registroPedido);
-                $db->Execute($sqlInsertPedido);
-                $idPedido = $db->Insert_ID();
-            }
-
-            $sqlDetalle = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido FROM detallepedidosfacturas WHERE idpedido=" . $idPedido;
+            $sqlDetalle = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido ".
+            " FROM detallepedidosfacturas WHERE idpedido=" . $idPedido . " AND idproducto=" . $idProducto;
             $detalle = $db->Execute($sqlDetalle);
             $registroDetalle = [
                 "idpedido" => $idPedido,
@@ -118,15 +118,16 @@ function  guardarPedido($aForm) {
             ];
 
             if ($detalle->RecordCount() > 0) {
-                $sqlUpdateDetalle = $db->GetUpdateSQL($detalle, $registroDetalle);
-                $db->Execute($sqlUpdateDetalle);
+                $sqlDetalle2 = $db->GetUpdateSQL($detalle, $registroDetalle);
             } else {
-                $sqlInsertDetalle = $db->GetInsertSQL($detalle, $registroDetalle);
-                $db->Execute($sqlInsertDetalle);
+                $sqlDetalle2 = $db->GetInsertSQL($detalle, $registroDetalle);
             }
-            
-            $db->CompleteTrans();
+            if ($sqlDetalle2) {
+                error_log("SQL Detalle: " . $sqlDetalle2);
+                $db->Execute($sqlDetalle2);
+            }
         }
+        $db->CompleteTrans();
         
         $r = true;
 
@@ -145,7 +146,7 @@ function obtenerPedidos() {
     global $db;
 
     try {
-        $sqlPedidos = "SELECT * FROM pedidos ORDER BY id ASC";
+        $sqlPedidos = "SELECT * FROM pedidos ORDER BY id DESC";
         $pedidos = $db->GetArray($sqlPedidos);
 
         if (count($pedidos) > 0) {

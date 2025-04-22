@@ -192,8 +192,8 @@ function inicialTomaPedidos(idPedido = null) {
 }
 
 async function obtenerCosto(productoId) {
-    const productos = await pet("controladores/productos.php", { funcion: "obtenerproductos" });
-    const producto = productos.find(p => p.id == productoId);
+    const data = await pet("controladores/productos.php", { funcion: "obtenerproductos" });
+    const producto = data.productos.find(p => p.id == productoId);
     return producto ? { costo: parseFloat(producto.costo), precioventa: parseFloat(producto.precioventa)} : {costo: 0, precioventa: 0};
 }
 
@@ -217,8 +217,9 @@ async function agregarProducto() {
 
     try {
         const data = await pet("controladores/productos.php", { funcion: "obtenerproductos" });
-        if (data && Array.isArray(data)) {
-            infoProductos = data;
+        if (data.productos && Array.isArray(data.productos)) {
+            infoProductos = data.productos;
+            console.log("Productos obtenidos:", data);
         }
     } catch (error) {
         console.error("Error obteniendo productos:", error);
