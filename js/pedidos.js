@@ -81,13 +81,13 @@ async function cargarDatosPedido(idPedido) {
     data.detalle.forEach((producto) => {
         let fila = `
         <tr>
-            <td>${producto.cantidad}</td>
+            <td><input type='number' min='1' step='1' class='form-control cantidadproducto' name='cantidad' value='${producto.cantidad || producto.cantidad != null ? producto.cantidad : ""}'></td>
             <td>${producto.nombre}</td>
             <td>${formatearMoneda(producto.precioventa)}</td>
             <td>${formatearMoneda(producto.cantidad * producto.precioventa)}</td>
             <td>${formatearMoneda(producto.preciosugerido)}</td>
             <td>${formatearMoneda(producto.cantidad * producto.preciosugerido)}</td>
-            <td><input type='text-area' class='form-control' id='observacionproducto' name='observacionproducto' value='${producto.observacionproducto || producto.observacionproducto != null ? producto.observacionproducto : ""}'></td>
+            <td><input type='text-area' class='form-control' name='observacionproducto' value='${producto.observacionproducto || producto.observacionproducto != null ? producto.observacionproducto : ""}'></td>
             <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
         </tr>
         `;
@@ -268,13 +268,13 @@ async function agregarProducto() {
         const fila = document.createElement("tr");
         fila.setAttribute("data-id", idProducto);
         fila.innerHTML = `
-            <td>${cantidad}</td>
+            <td><input type='number' min='1' step='1' class='form-control cantidadproducto' name='cantidad' value='${cantidad}'></td>
             <td>${nombreProducto}</td>
             <td>${formatearMoneda(precioProducto)}</td>
             <td>${formatearMoneda(subTotal)}</td>
             <td>${formatearMoneda(precioFinal)}</td>
             <td>${formatearMoneda(subSugerido)}</td>
-            <td><input type='text-area' class='form-control' id='observacionproducto' name='observacionproducto'></td>
+            <td><input type='text-area' class='form-control' name='observacionproducto'></td>
             <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
         `;
 
@@ -334,11 +334,58 @@ function guardarPedido(idPedido = null) {
             return;
         }
 
+        // let errorEncontrado = false;
+
+        // filas.forEach((fila, index) => {
+        //     const cantidadInput = fila.querySelector(".cantidadproducto");
+        //     const cantidad = parseInt(cantidadInput.value, 10);
+        
+        //     if (isNaN(cantidad) || cantidad < 1) {
+        //         errorEncontrado = true;
+        //         Swal.fire({
+        //             title: "CANTIDAD INVÁLIDA",
+        //             text: `La cantidad del producto en la fila ${index + 1} no es válida.`,
+        //             icon: "error",
+        //             timer: 3000,
+        //             showConfirmButton: false
+        //         });
+        //         return;
+        //     }
+        // });
+        
+        // if (errorEncontrado) return;
+
+        let filasConErrores = [];
+
+        filas.forEach((fila, index) => {
+            const cantidadInput = fila.querySelector(".cantidadproducto");
+            const cantidad = parseInt(cantidadInput.value, 10);
+
+            if (isNaN(cantidad) || cantidad < 1) {
+                filasConErrores.push(index + 1); // guarda el número de la fila (solo visual)
+                cantidadInput.classList.add("input-error"); // clase para resaltar
+                cantidadInput.focus(); // hace foco al primero que falle (si se quiere)
+            } else {
+                cantidadInput.classList.remove("input-error"); // limpia si estaba mal antes
+            }
+        });
+
+        if (filasConErrores.length > 0) {
+            Swal.fire({
+                title: "CANTIDAD INVÁLIDA",
+                text: `Corrige las cantidades en las siguientes filas: ${filasConErrores.join(", ")}`,
+                icon: "error",
+                timer: 4000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
         const productos = Array.from(filas).map(fila => ({
             id: parseInt(fila.getAttribute("data-id"), 10),
-            cantidad: parseInt(fila.cells[0]?.textContent.trim(), 10),
+            cantidad: parseInt(fila.querySelector(".cantidadproducto").value, 10),
             preciofinal: parseFloat(fila.cells[2]?.textContent.trim().replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.')),
-            observacionproducto: document.getElementById("observacionproducto").value,
+            observacionproducto: fila.querySelector("input[name='observacionproducto']").value,
             preciosugerido: parseFloat(fila.cells[4]?.textContent.trim().replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.'))
         })).filter(p => p.id && p.cantidad);
     
@@ -397,12 +444,11 @@ function guardarPedido(idPedido = null) {
 async function historialPedidos() {
     const data = await pet("controladores/pedidos.php", { funcion: "obtenerpedidos" });
 
-    if (data.pedidos) {
-        const pedidosArray = JSON.parse(data.pedidos);
+    if (data.pedidos && Array.isArray(data.pedidos)) {
         const pedidos = document.getElementById("pedidos");
 
         if (pedidos) {
-            pedidos.innerHTML = pedidosArray.map(pedido => `
+            pedidos.innerHTML = data.pedidos.map(pedido => `
                 <tr>
                     <td>${pedido.fecha}</td>
                     <td>${pedido.cliente}</td>
@@ -419,6 +465,15 @@ async function historialPedidos() {
     const tablaHistorial = initDataTable("#tablaHistorialP");
     editarPedido();
     tablaHistorial.on("draw.dt", editarPedido);
+
+    //Si seleccionan un filtro actualizar la tabla
+    filtroEscogido();
+}
+
+function filtroEscogido() {
+    //Si el filtro es pedidos empacados, se muestran los que tienen un 1 en la base de datos
+    document.getElementById("filtroPedido").addEventListener("click", async () => {});
+
 }
 
 function verOrdenCompra() {

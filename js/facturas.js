@@ -159,7 +159,7 @@ function changesPrefactura(idPedido) {
             fila.classList.toggle("fila-no-llego");
             const cantidadInput = fila.querySelector("#cantempacar");
             if (fila.classList.contains("fila-no-llego")) {
-                cantidadInput.value = "";
+                cantidadInput.value = 0;
                 fila.classList.remove("fila-ok");
             }
         });
@@ -177,6 +177,26 @@ function changesPrefactura(idPedido) {
             }
         });
     });
+
+    //Si la cantidad - faltante es 0, se pone en verde
+    const filas = document.querySelectorAll("#tablaPreFactura tbody tr");
+    filas.forEach(fila => {
+        const cantidad = parseInt(fila.querySelector("#cantidadBD").textContent);
+        const faltante = parseInt(fila.querySelector("#cantempacar").value);
+        if (cantidad - faltante === 0) {
+            fila.classList.add("fila-ok");
+        } else {
+            fila.classList.remove("fila-ok");
+        }
+        //Si la cantidad - faltante es igual a la cantidad, se pone en rojo
+        if (faltante === 0) {
+            fila.classList.add("fila-no-llego");
+        } else {
+            fila.classList.remove("fila-no-llego");
+        }
+    });
+
+    //Guardar cambios
 
     btnGuardar.addEventListener("click", async function () {
         const tbody = document.querySelector("#tablaPreFactura tbody");
@@ -197,7 +217,6 @@ function changesPrefactura(idPedido) {
                 timer: 2000,
                 showConfirmButton: false
             });
-            tablaPedidoBody.innerHTML = "";
         } else {
             Swal.fire({
                 title: "Error!",

@@ -95,6 +95,11 @@
     height: 50px;
 }
 
+.input-error {
+    border: 2px solid red;
+    background-color: #ffe5e5;
+}
+
 /* estilos prefactura */
 .fila-no-llego td {
     background-color: #ffe6e6 !important;

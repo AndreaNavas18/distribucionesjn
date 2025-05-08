@@ -46,28 +46,43 @@ function guardarPrefactura ($idpedido, $cambios)
     error_log("cambios " . print_r($cambios, true));
     $mensaje = "";
     $error = "";
-
     //Toca recorrer cambios
     foreach($cambios as $detalle) {
         $id = $detalle['iddetalle'];
         $empacada = $detalle['cantidadempacada'];
         $observacion = $detalle['observacion'];
 
-        $sqlDetalle1 = "SELECT id, idpedido, estado, cantidad, faltante, observacion FROM detallepedidosfacturas WHERE id=" . $id;
+        $sqlDetalle1 = "SELECT id, idpedido, cantidad, faltante, observacionproducto FROM detallepedidosfacturas WHERE id=" . $id;
         error_log("SQL Detalle 1: " . $sqlDetalle1);
         $executeDetalle1 = $db->Execute($sqlDetalle1);
         if ($executeDetalle1 && $executeDetalle1->RecordCount() > 0) {
             $cantidad = $executeDetalle1->fields['cantidad'];
+            if ($empacada == 0) {
+                $faltante = $cantidad;
+            } elseif ($empacada > 0 && $empacada < $cantidad) {
+                $faltante = $cantidad - $empacada;
+            } else {
+                $faltante = "";
+            }
             $registro = array(
-                'estado' => 1,
-                'faltante' => ($cantidad - $empacada) == 0 ? "" : ($cantidad - $empacada),
-                'observacion' => $observacion,
+                'faltante' => $faltante,
+                'observacionproducto' => $observacion,
             );
             $sqlDetalle2 = $db->GetUpdateSQL($executeDetalle1, $registro);
             error_log("SQL Detalle 2: " . $sqlDetalle2);
+            $sqlPedido = "SELECT id, estado FROM pedidos WHERE id=" . $idpedido;
+            error_log("SQL Pedido: " . $sqlPedido);
+            $executePedido = $db->Execute($sqlPedido);
+            if ($executePedido && $executePedido->RecordCount() > 0) {
+                $reg = array(
+                    'estado' => 1
+                );
+                $sqlPedido2 = $db->GetUpdateSQL($executePedido, $reg);
+            }
             if ($sqlDetalle2) {
                 $db->StartTrans();
                 $db->Execute($sqlDetalle2);
+                $db->Execute($sqlPedido2);
                 $db->CompleteTrans();
                 if ($db->ErrorMsg()) {
                     error_log("Error al guardar el detalle: " . $db->ErrorMsg());
