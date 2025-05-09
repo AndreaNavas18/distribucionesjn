@@ -169,6 +169,7 @@ function obtenerPedidos() {
 
 function verOrdenCompra($aForm) {
     global $db;
+    error_log("aForm: " . print_r($aForm, true));
 
     $fechaini = isset($aForm['fechaInicio']) ? $aForm['fechaInicio'] : null;
     $fechafin = isset($aForm['fechaFin']) && $aForm['fechaFin'] !== "" ? $aForm['fechaFin'] : $fechaini;
@@ -177,8 +178,16 @@ function verOrdenCompra($aForm) {
         return "Error: Fecha no válida.";
     }
 
-    $rutas = isset($aForm['ruta']) && is_array($aForm['ruta']) ? array_map('intval', $aForm['ruta']) : [];
-    $proveedores = isset($aForm['proveedor']) && is_array($aForm['proveedor']) ? array_map('intval', $aForm['proveedor']) : [];
+    // $rutas = isset($aForm['ruta']) && is_array($aForm['ruta']) ? array_map('intval', $aForm['ruta']) : [];
+    // $proveedores = isset($aForm['proveedor']) && is_array($aForm['proveedor']) ? array_map('intval', $aForm['proveedor']) : [];
+
+    $proveedores = isset($aForm['proveedor']) && is_array($aForm['proveedor']) 
+    ? array_filter(array_map('intval', $aForm['proveedor']), function($v) { return $v > 0; })
+    : [];
+
+    $rutas = isset($aForm['ruta']) && is_array($aForm['ruta'])
+    ? array_filter(array_map('intval', $aForm['ruta']), function($v) { return $v > 0; })
+    : [];
 
     try {
         if (!empty($rutas)) {

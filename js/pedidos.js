@@ -118,7 +118,7 @@ async function obtenerClientes() {
     const clientesArray = JSON.parse(data.clientes);
     const clientes = document.getElementById("slcClientes");
     if (clientes) {
-        clientes.innerHTML = "<option value='elegir'>Seleccione un cliente</option>" + clientesArray.map(cliente =>
+        clientes.innerHTML = "<option value=''>Seleccione un cliente</option>" + clientesArray.map(cliente =>
             `<option value="${cliente.id}">${cliente.nombre}</option>`
         ).join('');
     } else {
@@ -441,15 +441,24 @@ function guardarPedido(idPedido = null) {
     });
 }
 
-async function historialPedidos() {
+async function cargarPedidos(filtro = "") {
     const data = await pet("controladores/pedidos.php", { funcion: "obtenerpedidos" });
 
     if (data.pedidos && Array.isArray(data.pedidos)) {
+        let pedidosFiltrados = data.pedidos;
+
+        if (filtro === "empacados") {
+            pedidosFiltrados = pedidosFiltrados.filter(pedido => pedido.estado == 1);
+        } else if (filtro === "sinempacar") {
+            pedidosFiltrados = pedidosFiltrados.filter(pedido => pedido.estado != 1);
+        }
+
         const pedidos = document.getElementById("pedidos");
 
         if (pedidos) {
-            pedidos.innerHTML = data.pedidos.map(pedido => `
+            pedidos.innerHTML = pedidosFiltrados.map(pedido => `
                 <tr>
+                    <td><input type="checkbox" class="seleccionar-pedido" value="${pedido.id}" ${pedido.estado == 1 ? "" : "disabled"}></td>
                     <td>${pedido.fecha}</td>
                     <td>${pedido.cliente}</td>
                     <td>${pedido.total}</td>
@@ -461,19 +470,49 @@ async function historialPedidos() {
     } else {
         console.error("Error", data.error);
     }
+}
+
+function historialPedidos() {
+    // Cargar inicialmente todos los pedidos
+    cargarPedidos();
 
     const tablaHistorial = initDataTable("#tablaHistorialP");
     editarPedido();
     tablaHistorial.on("draw.dt", editarPedido);
 
-    //Si seleccionan un filtro actualizar la tabla
-    filtroEscogido();
+    // Filtrar cuando hacen click en el botón
+    document.getElementById("btnFiltroHp").addEventListener("click", () => {
+        const filtro = document.getElementById("filtroPedido").value;
+        cargarPedidos(filtro);
+    });
+
+    imprimirPedidos();
 }
 
-function filtroEscogido() {
-    //Si el filtro es pedidos empacados, se muestran los que tienen un 1 en la base de datos
-    document.getElementById("filtroPedido").addEventListener("click", async () => {});
+function imprimirPedidos() {
+    document.getElementById("btnImprimirSeleccionados").addEventListener("click", async () => {
+        const seleccionados = Array.from(document.querySelectorAll(".seleccionar-pedido:checked")).map(checkbox => checkbox.value);
+    
+        if (seleccionados.length === 0) {
+            alert("Por favor selecciona al menos un pedido para imprimir.");
+            return;
+        }
 
+        fetch("../controladores/generarfacturaspdf.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: seleccionados })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                data.pdfUrls.forEach(url => window.open(url, '_blank'));
+            } else {
+                console.error(data.error);
+            }
+        })
+        .catch(err => console.error("Error:", err));
+    });
 }
 
 function verOrdenCompra() {
@@ -491,33 +530,32 @@ function verOrdenCompra() {
             funcion: "verordencompra",
             datosForm: formDataObj
         });
+        
+        const tablaOrdenCompra = document.getElementById("ordenesCompra");
+        if (data.orden && Array.isArray(data.orden)) {
+            console.log(data.orden);
 
-        if (data.orden) {
-            const ordenArr = JSON.parse(data.orden);
-            const tablaOrdenCompra = document.getElementById("ordenesCompra");
-
-            if (tablaOrdenCompra && Array.isArray(ordenArr)) {
-                if(ordenArr[0].ruta){
-                    document.getElementById("thRuta").style.display = "block";
-                }
-
-                tablaOrdenCompra.innerHTML = ordenArr.map(orden => `
-                    <tr>
-                        <td>${orden.nombre}</td>
-                        <td>${orden.cantidad}</td>
-                        <td>${orden.costo}</td>
-                        <td>${orden.proveedor}</td>
-                        ${orden.ruta ? `<td>${orden.ruta}</td>` : ''}
-                        <td>${orden.observacion}</td>
-                    </tr>
-                `).join("");
+            if(data.orden[0] && data.orden[0].ruta) {
+                document.getElementById("thRuta").style.display = "block";
             }
+
+            tablaOrdenCompra.innerHTML = data.orden.map(orden => `
+                <tr>
+                    <td>${orden.nombre}</td>
+                    <td>${orden.cantidad}</td>
+                    <td>${orden.costo}</td>
+                    <td>${orden.proveedor ? orden.proveedor : ''}</td>
+                    ${orden.ruta ? `<td>${orden.ruta}</td>` : ''}
+                    <td>${orden.observacion ? orden.observacion : ''}</td>
+                </tr>
+            `).join("");
+            
             generarOrden();
         } else {
+            tablaOrdenCompra.innerHTML = "";
+            // tablaOrdenCompra.innerHTML = "<tr><td colspan='6'>No hay órdenes de compra registradas</td></tr>";
             console.error("Error en la respuesta del servidor:", data.error);
         }
-
-        // actualizarTotal();
     });
 }
 
@@ -532,7 +570,7 @@ async function listarProveedores() {
         }
 
         if (Array.isArray(data.proveedores)) {
-            selectProveedores.innerHTML = "<option value='elegir'>Todos los proveedores</option>" + 
+            selectProveedores.innerHTML = "<option value=''>Todos los proveedores</option>" + 
             data.proveedores.map(proveedor =>
                 `<option value="${proveedor.id}">${proveedor.proveedor}</option>`
             ).join('');
