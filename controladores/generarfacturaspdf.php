@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
-require_once 'database.php';
+require_once __DIR__ . '/../database.php';
 use Mpdf\Mpdf;
 
 header("Content-Type: application/json");
@@ -17,23 +17,21 @@ $ids = $datos["ids"];
 $pdfUrls = [];
 
 foreach ($ids as $idPedido) {
-    // Obtener datos de la base de datos para este pedido
     $pedido = obtenerPedidoPorId($idPedido);
-    if (!$pedido) continue; // Si no existe, saltar al siguiente
+    $detalles = obtenerDetallesPedido($idPedido);
+    if (!$pedido) continue;
+    if (!$detalles || count($detalles) === 0) continue;
 
-    //Cargar CSS
     $css = file_get_contents(__DIR__ . '/../css/facturapdf.css');
 
-    //Cargar HTML de la plantilla y pasarlo a string
     ob_start();
-    include __DIR__ . '/../plantillas/factura.php'; // en este archivo usarás $pedido
+    include __DIR__ . '/../plantillas/factura.php';
     $htmlFactura = ob_get_clean();
 
-    // Inicializar mPDF
     $mpdf = new Mpdf([
         'margin_left' => 10,
         'margin_right' => 10,
-        'margin_top' => 35,
+        'margin_top' => 10,
         'margin_bottom' => 20,
         'margin_header' => 10,
         'margin_footer' => 10
@@ -43,7 +41,6 @@ foreach ($ids as $idPedido) {
     $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($htmlFactura, \Mpdf\HTMLParserMode::HTML_BODY);
 
-    // 👉 Guardar PDF con nombre único
     $pdfDir = __DIR__ . '/../pdfs';
     if (!file_exists($pdfDir)) {
         mkdir($pdfDir, 0777, true);
@@ -51,28 +48,37 @@ foreach ($ids as $idPedido) {
     $pdfFileName = "factura_{$pedido['id']}.pdf";
     $pdfPath = $pdfDir . '/' . $pdfFileName;
 
-    $mpdf->Output($pdfPath, "F");
-
-    //Añadir URL al array de PDFs generados
-    $pdfUrls[] = "/distribucionesjn/pdfs/" . $pdfFileName;
+    try {
+        $mpdf->Output($pdfPath, "F");
+        $pdfUrls[] = "/distribucionesjn/pdfs/" . $pdfFileName;
+    } catch (\Mpdf\MpdfException $e) {
+        error_log("Error generando PDF para pedido $idPedido: " . $e->getMessage());
+    }
 }
 
-//Devolver las URLs al frontend
 echo json_encode([
     "success" => true,
     "pdfUrls" => $pdfUrls
-]);
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 exit;
 
-function obtenerPedidoPorId($id) {
-    $conexion = new mysqli("localhost", "usuario", "contraseña", "base_de_datos");
-    $stmt = $conexion->prepare("SELECT * FROM pedidos WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $resultado = $stmt->get_result();
-    $pedido = $resultado->fetch_assoc();
-    $stmt->close();
-    $conexion->close();
-    return $pedido;
+function obtenerPedidoPorId($idPedido) {
+    global $db;
+    $sql = "SELECT p.*, c.nombre AS cliente_nombre, c.razonsocial, c.cedula, c.ubicacion, c.direccion, c.telefono, c.telefono2, c.ruta 
+            FROM pedidos p
+            LEFT JOIN clientes c ON p.idcliente = c.id
+            WHERE p.id = ?";
+    return $db->GetRow($sql, [$idPedido]);
+}
+
+function obtenerDetallesPedido($idPedido) {
+    global $db;
+    $sql = "SELECT dp.*, pr.nombre AS producto_nombre, 
+                   CASE WHEN dp.preciosugerido > 0 THEN dp.preciosugerido ELSE pr.precioventa END AS precio_factura,
+                   (dp.cantidad - COALESCE(dp.faltante, 0)) AS cantidad_facturada
+            FROM detallepedidosfacturas dp
+            LEFT JOIN productos pr ON dp.idproducto = pr.id
+            WHERE dp.idpedido = ?";
+    return $db->GetAll($sql, [$idPedido]);
 }
 ?>
