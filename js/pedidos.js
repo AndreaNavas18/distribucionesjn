@@ -52,7 +52,7 @@ function listarProductos() {
                     return {
                         results: data.productos.map(producto => ({
                             id: producto.id,
-                            text: producto.nombre
+                            text: producto.nombre + " - " + (producto.precioventa || ""),
                         }))
                     };
                 },
@@ -122,7 +122,7 @@ async function obtenerClientes() {
     const clientes = document.getElementById("slcClientes");
     if (clientes) {
         clientes.innerHTML = "<option value=''>Seleccione un cliente</option>" + clientesArray.map(cliente =>
-            `<option value="${cliente.id}">${cliente.nombre}</option>`
+            `<option value="${cliente.id}">${cliente.nombre + " - " + (cliente.ubicacion != null ? cliente.ubicacion : "")}</option>`
         ).join('');
     } else {
         console.error("El elemento 'slcClientes' no existe en el DOM");

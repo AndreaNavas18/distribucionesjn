@@ -92,11 +92,11 @@ function buscarProductos($query) {
 
     try {
         if (empty($query)) {
-            $sql = "SELECT id, nombre FROM productos";
+            $sql = "SELECT id, nombre, precioventa FROM productos";
             $productos = $db->GetArray($sql);
         } else {
             $query = strtoupper($query);
-            $sql = "SELECT id, nombre FROM productos WHERE UPPER(nombre) LIKE ?";
+            $sql = "SELECT id, nombre, precioventa FROM productos WHERE UPPER(nombre) LIKE ?";
             $productos = $db->GetArray($sql, ["%$query%"]);
         }
 

@@ -112,7 +112,7 @@ function crearCliente($params, $id) {
 function obtenerClientes() {
     global $db;
     try {
-        $sql = "SELECT id, nombre, razonsocial, ubicacion, telefono, telefono2, ruta FROM clientes";
+        $sql = "SELECT id, nombre, razonsocial, ubicacion, telefono, telefono2, ruta FROM clientes ORDER BY nombre";
         $result = $db->Execute($sql);
 
         if ($result) {
