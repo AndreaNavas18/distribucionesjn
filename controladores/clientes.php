@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'crearcliente':
                 if (isset($data['dataCliente'])) {
                     $aForm = $data['dataCliente'];
-                    $resultado = crearCliente($aForm);
+                    $resultado = crearCliente($aForm, $data['idCliente']);
                     $response['lo que llega'] = $resultado;
                     if($resultado) {
                         $response["mensaje"] = "Cliente guardado con éxito";
@@ -60,28 +60,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 echo json_encode($response);
 
-function crearCliente($params) {
+function crearCliente($params, $id) {
     global $db;
 
+    $r = false;
     $nombre = $params['nombre'] != "" ? strtoupper($params['nombre']) : null;
     $razonsocial = $params['razonsocial'] != "" ? strtoupper($params['razonsocial']) : null;
     $ubicacion = $params['ubicacion'] != "" ? strtoupper($params['ubicacion']) : null;
     $telefono = $params['telefono'] != "" ? $params['telefono'] : null;
     $direccion = $params['direccion'] != "" ? strtoupper($params['direccion']) : null;
     $telefono2 = $params['telefono2'] != "" ? $params['telefono2'] : null;
+    $idCliente = $id ?? 0;
+
+    $sqlC = "SELECT * FROM clientes WHERE id=" . $idCliente;
+    $res = $db->Execute($sqlC);
+    $registro = array(
+        'nombre' => $nombre,
+        'razonsocial' => $razonsocial,
+        'ubicacion' => $ubicacion,
+        'telefono' => $telefono,
+        'direccion' => $direccion,
+        'telefono2' => $telefono2
+    );
 
     try {
-        $sql = "INSERT INTO clientes (nombre, razonsocial, ubicacion, telefono, direccion, telefono2)
-            VALUES (?, ?, ?, ?, ?, ?)";
-        $result = $db->Execute($sql, [$nombre, $razonsocial, $ubicacion, $telefono, $direccion, $telefono2]);
-        if ($result) {
-            return json_encode(["mensaje" => "Cliente creado con éxito"]);
+        $db->StartTrans();
+        if ($res && $res->RecordCount() > 0)  {
+            $cmdc = $db->GetUpdateSQL($res, $registro);
         } else {
-            return json_encode(["error" => "No se pudo insertar el cliente"]);
+            $cmdc = $db->GetInsertSQL($res, $registro);
         }
-    } catch (PDOException $e) {
-        return json_encode(["error" => "Error en la consulta: " . $e->getMessage()]);
+    
+        if (isset($cmdc) && $cmdc !== false) {
+            $db->Execute($cmdc);
+        }
+
+        $db->CompleteTrans();
+        $r = true;
+
+    } catch (Exception $e) {
+        $db->FailTrans();
+        $db->CompleteTrans();
+
+        error_log("Error al crear/editar un cliente: " . $e->getMessage());
+        $r = false;
     }
+
+    return $r;
 }
 
 function obtenerClientes() {

@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (vista === "crearCliente") {
         const urlParams = new URLSearchParams(window.location.search);
         const idCliente = urlParams.get('id');
-        crearClientes();
+        crearClientes(idCliente);
         if (idCliente) {
             cargarDatosCliente(idCliente);
         }
@@ -14,8 +14,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-function crearClientes() {
+function crearClientes(idCliente = null) {
     const form = document.getElementById("formCliente");
+    console.log("estoy editando un cliente existente " + idCliente);
     
     if (form) { 
         form.addEventListener("submit", async function (event) {
@@ -30,7 +31,8 @@ function crearClientes() {
 
             const respuesta = await pet("controladores/clientes.php", {
                 funcion: "crearcliente",
-                dataCliente: clienteData
+                dataCliente: clienteData,
+                idCliente: idCliente
             });
 
             if (!respuesta.error) {

@@ -28,17 +28,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
             $nombre = $productData[0];
             $precio = $productData[1];
             $costo = $productData[2];
-            $veintep = $productData[3];
-            $quincep = $productData[4];
-            $diezp = $productData[5];
-            $proveedor = $productData[6];
+            $proveedor = $productData[3];
 
-            $sql = "INSERT INTO productos (nombre, precioventa, costo, p25, p15, p10, proveedor)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
-            $params = [$nombre, $precio, $costo, $veintep, $quincep, $diezp, $proveedor];
+            $sql = "INSERT INTO productos (nombre, precioventa, costo, idproveedor)
+                    VALUES (?, ?, ?, ?)";
+            error_log("sql importacion productos " . $sql);
+            $params = [$nombre, $precio, $costo, $proveedor];
 
             // Ejecutar consulta
-            $db->Execute($sql, $params);
+            $result = $db->Execute($sql, $params);
+
+            if (!$result) {
+                error_log("Error al insertar producto: " . $db->ErrorMsg());
+            }
         }
 
         $db->CompleteTrans();

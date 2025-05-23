@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (vista === "index") {
         inicial();
         importarProductos();
+        importarClientes();
     } else if (vista === "crearProducto") {
         listarProveedores();
         crearProducto();
@@ -163,7 +164,7 @@ function importarProductos() {
         const formData = new FormData();
         formData.append("excel_file", fileInput.files[0]);
         
-        fetch(SERVER + "/controladores/importacion.php", {
+        fetch(SERVER + "/controladores/importacionproductos.php", {
             method: "POST",
             body: formData
         })
@@ -272,4 +273,59 @@ async function listarProveedores() {
             ).join('');
         }
     }
+}
+
+function importarClientes() {
+    document.getElementById("uploadButtonCliente").addEventListener("click", function () {
+        const fileInput = document.getElementById("excel_file_cliente");
+        
+        if (fileInput.files.length === 0) {
+            Swal.fire({
+                title: "Info",
+                text: "Por favor, selecciona un archivo.",
+                icon: "info",
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append("excel_file", fileInput.files[0]);
+        
+        fetch(SERVER + "/controladores/importacionclientes.php", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                Swal.fire({
+                    title: "Error!",
+                    text: "Hubo un error al importar los clientes." + data.error,
+                    icon: "error",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire({
+                    title: "¡Éxito!",
+                    text: "Clientes importados exitosamente.",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Error en la solicitud:", error);
+            Swal.fire({
+                title: "Error!",
+                text: "Ocurrió un error al subir el archivo.",
+                icon: "error",
+                timer: 2000,
+                showConfirmButton: false
+            });
+        });
+    });
 }

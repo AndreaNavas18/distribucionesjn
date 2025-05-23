@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         guardarPedido(idPedido);
     } else if (vista === "historialPedidos") {
+        cargarPedidos();
         historialPedidos();
     } else if (vista === "ordenCompra") {
         initCalendars();
@@ -30,6 +31,7 @@ function listarProductos() {
             minimumInputLength: 0,
             dropdownAutoWidth: true,
             width: '100%',
+            dropdownParent: $('#divTarjetaP'),
             ajax: {
                 url: SERVER + 'controladores/productos.php',
                 type: 'POST',
@@ -102,6 +104,7 @@ function editarPedido() {
     const btnEditarPedido = document.querySelectorAll("#btnEditarPedido");
     btnEditarPedido.forEach(boton => {
         boton.addEventListener("click", function () {
+            console.log("Editar pedido xx");
             const idPedido = this.dataset.id;
             window.location.href = `tomarPedido.html?id=${idPedido}`;
         });
@@ -162,16 +165,16 @@ function inicialTomaPedidos(idPedido = null) {
                 <button type="button" class="btn btn-outline-primary precio-btn" data-precio="${precios.precioventa}">Venta: ${formatearMoneda(precios.precioventa)}</button>
             </div>
             <div class="col-auto">
-                <button type="button" class="btn btn-outline-primary precio-btn" data-precio="${precios.base}">Costo: ${formatearMoneda(precios.base)}</button>
+                <button type="button" class="btn btn-outline-primary precio-btn" data-id="1" data-precio="${precios.base}">Costo: ${formatearMoneda(precios.base)}</button>
             </div>
             <div class="col-auto">
-                <button type="button" class="btn btn-outline-success precio-btn" data-precio="${precios.diez}">+10%: ${formatearMoneda(precios.diez)}</button>
+                <button type="button" class="btn btn-outline-success precio-btn" data-id="10" data-precio="${precios.diez}">+10%: ${formatearMoneda(precios.diez)}</button>
             </div>
             <div class="col-auto">
-                <button type="button" class="btn btn-outline-warning precio-btn" data-precio="${precios.quince}">+15%: ${formatearMoneda(precios.quince)}</button>
+                <button type="button" class="btn btn-outline-warning precio-btn" data-id="15" data-precio="${precios.quince}">+15%: ${formatearMoneda(precios.quince)}</button>
             </div>
             <div class="col-auto">
-                <button type="button" class="btn btn-outline-danger precio-btn" data-precio="${precios.veinticinco}">+25%: ${formatearMoneda(precios.veinticinco)}</button>
+                <button type="button" class="btn btn-outline-danger precio-btn" data-id="25" data-precio="${precios.veinticinco}">+25%: ${formatearMoneda(precios.veinticinco)}</button>
             </div>
             <div class="col-auto">
                 <input type="number" id="precioPersonalizado" class="form-control w-auto" placeholder="Otro precio">
@@ -228,7 +231,7 @@ async function agregarProducto() {
     btnAgregar.addEventListener("click", function () {
         const productoSeleccionado = selectProductos.options[selectProductos.selectedIndex];
         const cantidad = inputCantidad.value;
-
+        
         if (!productoSeleccionado.value || cantidad <= 0) {
             Swal.fire({
                 title: "!!!", 
@@ -243,9 +246,21 @@ async function agregarProducto() {
         const idProducto = productoSeleccionado.value;
         const nombreProducto = productoSeleccionado.text;
         const producto = infoProductos.find(prod => prod.id == idProducto);
-
+        const productoYaAgregado = tablaPedidoBody.querySelector(`tr[data-id="${idProducto}"]`);
+        
         if (!producto) {
             console.error("Producto no encontrado en la lista.");
+            return;
+        }
+
+        if (productoYaAgregado) {
+            Swal.fire({
+                title: "!!!",
+                text: "Este producto ya se encuentra en el pedido.",
+                icon: "info",
+                timer: 2000,
+                showConfirmButton: false
+            });
             return;
         }
         const precioProducto = parseFloat(producto.precioventa);
@@ -333,27 +348,6 @@ function guardarPedido(idPedido = null) {
             });
             return;
         }
-
-        // let errorEncontrado = false;
-
-        // filas.forEach((fila, index) => {
-        //     const cantidadInput = fila.querySelector(".cantidadproducto");
-        //     const cantidad = parseInt(cantidadInput.value, 10);
-        
-        //     if (isNaN(cantidad) || cantidad < 1) {
-        //         errorEncontrado = true;
-        //         Swal.fire({
-        //             title: "CANTIDAD INVÁLIDA",
-        //             text: `La cantidad del producto en la fila ${index + 1} no es válida.`,
-        //             icon: "error",
-        //             timer: 3000,
-        //             showConfirmButton: false
-        //         });
-        //         return;
-        //     }
-        // });
-        
-        // if (errorEncontrado) return;
 
         let filasConErrores = [];
 
@@ -461,32 +455,26 @@ async function cargarPedidos(filtro = "") {
                     <td><input type="checkbox" class="seleccionar-pedido" value="${pedido.id}" ${pedido.estado == 1 ? "" : "disabled"}></td>
                     <td>${pedido.fecha}</td>
                     <td>${pedido.cliente}</td>
-                    <td>${pedido.total}</td>
+                    <td>$${new Intl.NumberFormat('es-CO').format(pedido.total)}</td>
                     <td>${pedido.observacion ?? ""}</td>
                     <td><button class="btn btn-primary" id="btnEditarPedido" data-id="${pedido.id}">Editar</button></td>
                 </tr>
             `).join("");
         }
+
+
+        const tablaHistorial = initDataTable("#tablaHistorialP");
+        editarPedido();
+        tablaHistorial.on("draw.dt", editarPedido);
+        document.getElementById("btnFiltroHp").addEventListener("click", () => {
+            const filtro = document.getElementById("filtroPedido").value;
+            cargarPedidos(filtro);
+        });
+        
+        imprimirPedidos();
     } else {
         console.error("Error", data.error);
     }
-}
-
-function historialPedidos() {
-    // Cargar inicialmente todos los pedidos
-    cargarPedidos();
-
-    const tablaHistorial = initDataTable("#tablaHistorialP");
-    editarPedido();
-    tablaHistorial.on("draw.dt", editarPedido);
-
-    // Filtrar cuando hacen click en el botón
-    document.getElementById("btnFiltroHp").addEventListener("click", () => {
-        const filtro = document.getElementById("filtroPedido").value;
-        cargarPedidos(filtro);
-    });
-
-    imprimirPedidos();
 }
 
 function imprimirPedidos() {

@@ -214,8 +214,15 @@ function changesPrefactura(idPedido) {
                 title: "¡Éxito!",
                 text: data.mensaje,
                 icon: "success",
-                timer: 2000,
-                showConfirmButton: false
+                showCancelButton: true,
+                confirmButtonText: "Pedidos Activos",
+                cancelButtonText: "Home"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'pedidosActivos.html';
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    window.location.href = '../index.html';
+                }
             });
         } else {
             Swal.fire({

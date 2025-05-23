@@ -50,11 +50,23 @@ export function initDataTable(selector, options = {}) {
 
 export function initSelect2(selector, options = {}) {
     if (typeof $ !== "undefined" && $.fn.select2) {
-        $(selector).select2({
+        const select2Options = {
             placeholder: "Selecciona una opción",
             allowClear: true,
             width: '100%',
             ...options
+        };
+
+        $(selector).select2(select2Options);
+
+        // Enfocar el campo de búsqueda automáticamente al abrir
+        $(selector).on('select2:open', () => {
+            setTimeout(() => {
+                const searchField = document.querySelector('.select2-container--open .select2-search__field');
+                if (searchField) {
+                    searchField.focus();
+                }
+            }, 0);
         });
     } else {
         console.error("jQuery o Select2 no están cargados.");
@@ -85,21 +97,43 @@ export function formatearMoneda(valor, moneda = 'COP') {
 export function cargarCabecera() {
     document.addEventListener("DOMContentLoaded", function () {
         fetch("../componentes/cabecera.html")
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(data => {
+            const cabecera = document.getElementById("cabecera");
+            if (cabecera) {
+                cabecera.innerHTML = data;
+                const btnBack = document.getElementById('btnBack');
+                const btnMenuToggle = document.getElementById('btnMenuToggle');
+                const menuLateral = document.getElementById('menuLateral');
+
+                if (btnBack) {
+                    btnBack.addEventListener('click', () => {
+                        window.history.back();
+                    });
                 }
-                return response.text();
-            })
-            .then(data => {
-                const cabecera = document.getElementById("cabecera");
-                if (cabecera) {
-                    cabecera.innerHTML = data;
-                } else {
-                    console.error("No se encontró el elemento #cabecera en el DOM.");
+
+                if (btnMenuToggle && menuLateral) {
+                    btnMenuToggle.addEventListener('click', () => {
+                        const isVisible = menuLateral.style.display === 'block';
+                        menuLateral.style.display = isVisible ? 'none' : 'block';
+                    });
+
+                    document.addEventListener('click', function (e) {
+                        if (!menuLateral.contains(e.target) && !btnMenuToggle.contains(e.target)) {
+                            menuLateral.style.display = 'none';
+                        }
+                    });
                 }
-            })
-            .catch(error => console.error("Error al cargar la cabecera:", error));
+            } else {
+                console.error("No se encontró el elemento #cabecera en el DOM.");
+            }
+        })
+        .catch(error => console.error("Error al cargar la cabecera:", error));
     });
 }
 

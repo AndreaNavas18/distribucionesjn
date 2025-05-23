@@ -8,39 +8,57 @@ body {
     margin: 0;
 }
 
+/* Estilos cabecera personalizados */
 .cabecerax {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px;
     background-color: var(--bg-general);
+    padding: 10px 15px;
 }
 
-.cabecerax a {
+/* Botones de cabecera */
+.cabecerax .btn {
     background-color: var(--bg-claro);
     color: var(--cl-general);
     border: none;
-    padding: 5px 10px;
+    padding: 6px 10px;
     border-radius: 5px;
     font-size: 16px;
-    cursor: pointer;
-    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.cabecerax a i {
-    color: var(--cl-general);
+.cabecerax .btn i {
     font-size: 20px;
 }
 
-.cabecerax button {
+/* Menú lateral */
+.menu-lateral {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    width: 200px;
     background-color: var(--bg-claro);
-    color: var(--cl-general);
+    border: 1px solid var(--cl-general);
+    border-radius: 8px;
+    padding: 10px 0;
+    z-index: 999;
+}
+
+.menu-lateral .list-group-item {
+    background-color: transparent;
     border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 16px;
+    padding: 10px 20px;
+    color: var(--bg-general);
+    text-decoration: none;
+}
+
+.menu-lateral .list-group-item:hover {
+    background-color: var(--bg-general);
+    color: var(--cl-general);
     cursor: pointer;
 }
+
+/* fin estilos de cabecera */
 
 /*Estilos crearCliente */
 .ccContenedor {
