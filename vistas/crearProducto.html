@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parametrizar Productos</title>
+    <title>Crear Productos</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
     
@@ -29,60 +29,44 @@
     <div id="cabecera"></div>
 
     <div class="container mt-4">
-        <h1 class="text-center mb-4">Parametrizar Productos</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow p-4">
+                    <h1 class="text-center mb-4">Crear Producto</h1>
+                    <form id="formCrearProducto">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre:</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
 
-        <div class="card shadow p-4 mb-4">
-            <h2 class="h4 mb-3">Crear producto</h2>
-            <form id="formCrearProducto" class="row g-3">
-                <div class="col-md-3">
-                    <label for="producto" class="form-label">Producto</label>
-                    <input type="text" class="form-control" id="producto" name="producto">
-                </div>
-                <div class="col-md-3">
-                    <label for="precioventa" class="form-label">Precio venta</label>
-                    <input type="text" class="form-control" id="precioventa" name="precioventa">
-                </div>
-                <div class="col-md-3">
-                    <label for="costo" class="form-label">Costo</label>
-                    <input type="text" class="form-control" id="costo" name="costo">
-                </div>
-                <div class="col-md-3">
-                    <label for="idproveedor" class="form-label">Proveedor</label>
-                    <select class="form-select" id="idproveedor" name="idproveedor">
-                    </select>
-                </div>
-                <div class="col-12 text-center mt-3">
-                    <button type="button" id="btnGrabar" class="btn btn-primary">
-                        <i class="fa-solid fa fa-floppy-o"></i> Guardar
-                    </button>
-                </div>
-            </form>
-        </div>
+                        <div class="mb-3">
+                            <label for="costo" class="form-label">Costo:</label>
+                            <input type="text" class="form-control" id="costo" name="costo">
+                        </div>
+                        
+                        <div class="mb-3" id="divPorcentajes"></div>
 
-        <div class="card shadow p-4">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2 class="h4 mb-0">Productos</h2>
-                <button id="btnGenerarPDF" class="btn btn-primary btn-sm ms-auto">📄 Generar PDF</button>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-dark text-center">
-                        <tr>
-                            <th>Producto</th>
-                            <th>Cantidad</th>
-                            <th>Costo</th>
-                            <th>Proveedor</th>
-                            <th id="thRuta" style="display: none;">Ruta</th>
-                            <th>Observacion</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordenesCompra">
-                    </tbody>
-                </table>
+                        <div class="mb-3">
+                            <label for="precioventa" class="form-label">Precio de Venta:</label>
+                            <input type="text" class="form-control" id="precioventa" name="precioventa">
+                        </div>
+
+                         <div class="mb-3">
+                            <label for="idproveedor" class="form-label">Proveedor</label>
+                            <select class="form-select" id="idproveedor" name="idproveedor">
+                            </select>
+                        </div>
+
+                        <div class="text-center">
+                            <button id="btnGrabarProducto" type="submit" class="btn btn-success w-100">
+                                <i class="fa-solid fa-user-plus"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-
     <script type="module">
         import { cargarCabecera } from "../js/base.js";
         cargarCabecera();

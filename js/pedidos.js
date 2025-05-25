@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", function() {
         guardarPedido(idPedido);
     } else if (vista === "historialPedidos") {
         cargarPedidos();
-        historialPedidos();
     } else if (vista === "ordenCompra") {
         initCalendars();
         listarProveedores();
@@ -59,6 +58,13 @@ function listarProductos() {
                 cache: true
             }
         });
+        $('#slcProductos').on('select2:select', function (e) {
+            const inputCantidad = document.getElementById("cantidad");
+            if (inputCantidad) {
+                inputCantidad.focus();
+            }
+        });
+
     }
 }
 
@@ -81,7 +87,9 @@ async function cargarDatosPedido(idPedido) {
     tbody.innerHTML = "";
 
     data.detalle.forEach((producto) => {
-        let fila = `
+        const fila = document.createElement("tr");
+
+        fila.innerHTML = `
         <tr>
             <td><input type='number' min='1' step='1' class='form-control cantidadproducto' name='cantidad' value='${producto.cantidad || producto.cantidad != null ? producto.cantidad : ""}'></td>
             <td>${producto.nombre}</td>
@@ -93,7 +101,12 @@ async function cargarDatosPedido(idPedido) {
             <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
         </tr>
         `;
-        tbody.innerHTML += fila;
+
+        fila.querySelector(".btnEliminar").addEventListener("click", function () {
+            fila.remove();
+            actualizarTotal(totalPedidoInput);
+        });
+        tbody.appendChild(fila);
     });
 
     actualizarTotal(totalPedidoInput);

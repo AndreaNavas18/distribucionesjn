@@ -89,7 +89,7 @@ function  guardarPedido($aForm) {
             "observacion" => $observacion
         ];
         
-        if ($pedido->RecordCount() > 0) {
+        if ($pedido && $pedido->RecordCount() > 0) {
             $sqlUpdatePedido = $db->GetUpdateSQL($pedido, $registroPedido);
             $db->Execute($sqlUpdatePedido);
             $idPedido = $idPedidoEdita;
@@ -99,7 +99,7 @@ function  guardarPedido($aForm) {
             $db->Execute($sqlInsertPedido);
             $idPedido = $db->Insert_ID();
         }
-        
+        error_log("productos: " . print_r($productos, true));
         foreach ($productos as $producto) {
             $idProducto = $producto['id'];
             $cantidad = $producto['cantidad'];
@@ -109,6 +109,7 @@ function  guardarPedido($aForm) {
             $sqlDetalle = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido ".
             " FROM detallepedidosfacturas WHERE idpedido=" . $idPedido . " AND idproducto=" . $idProducto;
             $detalle = $db->Execute($sqlDetalle);
+            error_log("SQL Detalle: " . $sqlDetalle);
             $registroDetalle = [
                 "idpedido" => $idPedido,
                 "idproducto" => $idProducto,
@@ -117,11 +118,14 @@ function  guardarPedido($aForm) {
                 "preciosugerido" => $sugerido
             ];
 
-            if ($detalle->RecordCount() > 0) {
+            if ($detalle && $detalle->RecordCount() > 0) {
+                error_log("Detalle existe");
                 $sqlDetalle2 = $db->GetUpdateSQL($detalle, $registroDetalle);
             } else {
+                error_log("No existe detalle");
                 $sqlDetalle2 = $db->GetInsertSQL($detalle, $registroDetalle);
             }
+            error_log("SQL Detalle2: " . $sqlDetalle2);
             if ($sqlDetalle2) {
                 error_log("SQL Detalle: " . $sqlDetalle2);
                 $db->Execute($sqlDetalle2);

@@ -2,6 +2,11 @@ import { SERVER, pet, formatearMoneda, initDataTable  } from "./base.js";
 
 let idProductoEditando = null;
 let tablaProductosDT;
+let formatearCOP = new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    minimumFractionDigits: 0
+});
 
 document.addEventListener("DOMContentLoaded", function() {
     const vista = document.body.id;
@@ -14,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (vista === "crearProducto") {
         listarProveedores();
         crearProducto();
+        changes();
     }
 });
 
@@ -51,6 +57,14 @@ function changeProductos() {
     const btnGuardar = document.getElementById("btnGrabarProd");
     const botones = document.querySelectorAll(".btnEditarProducto");
     const cerrarDialog = document.querySelector("#btnCloseDialog");
+    const inputCosto = document.getElementById("costo");
+    const inputVenta = document.getElementById("precioventa");
+    const divPorcentajes = document.getElementById("divPorcentajes");
+
+    [inputCosto, inputVenta].forEach(input => {
+        input.addEventListener("input", () => formatearInput(input));
+        input.addEventListener("blur", () => formatearInput(input));
+    });
 
     document.querySelector("#tablaProductos tbody").addEventListener("click", (e) => {
         const btn = e.target.closest(".btnEditarProducto");
@@ -84,6 +98,9 @@ function changeProductos() {
                     const input = document.getElementById(campo);
                     if (input) {
                         input.value = productoEscogido[campo];
+                        if (campo === "costo") {
+                            input.dispatchEvent(new Event("input"));
+                        }
                     }
                 });
             }
@@ -98,8 +115,8 @@ function changeProductos() {
         const producto = {
             id: idProductoEditando,
             nombre: document.getElementById("nombre").value,
-            precioventa: parseFloat(document.getElementById("precioventa").value),
-            costo: parseFloat(document.getElementById("costo").value)
+            precioventa: parseFloat(inputVenta.getAttribute("data-real")) || 0,
+            costo: parseFloat(inputCosto.getAttribute("data-real")) || 0
         };
     
         const data = await pet("controladores/productos.php", {
@@ -140,7 +157,42 @@ function changeProductos() {
     
         dialog.close();
     });
+
+    inputCosto.addEventListener("input", function () {
+        const costo = parseFloat(inputCosto.value.replace(/[^0-9.]/g, '').replace(",", "."));
+
+        if (isNaN(costo) || costo <= 0) {
+            divPorcentajes.innerHTML = "";
+            return;
+        }
+
+        const porcentajes = [10, 15, 25];
+        let html = "<label class='form-label'>Precios sugeridos:</label><ul class='list-group mt-2'>";
+
+        porcentajes.forEach(porcentaje => {
+            const precio = costo * (1 + porcentaje / 100);
+            html += `<li class='list-group-item'>${porcentaje}%: <strong>${formatearCOP.format(precio)}</strong></li>`;
+        });
+
+        html += "</ul>";
+        divPorcentajes.innerHTML = html;
+    });
 }
+
+function limpiarNumero(valor) {
+    return parseFloat(valor.replace(/[^\d,]/g, '').replace(",", "."));
+}
+
+function formatearInput(input) {
+        const valor = limpiarNumero(input.value);
+        if (!isNaN(valor)) {
+            input.setAttribute("data-real", valor);
+            input.value = formatearCOP.format(valor);
+        } else {
+            input.removeAttribute("data-real");
+            input.value = "";
+        }
+    }
 
 function calcularPorcentaje(valor,porcentaje) {
     return (valor * porcentaje) / 100;
@@ -227,12 +279,16 @@ function crearProducto() {
                 productoData[key] = value.toUpperCase();
             });
 
+            console.log("Producto Data: ", productoData);
+
             const respuesta = await pet("controladores/productos.php", {
                 funcion: "crearproducto",
                 dataProducto: productoData
             });
 
             if (!respuesta.error) {
+                const divPorcentajes = document.getElementById("divPorcentajes");
+                divPorcentajes.innerHTML = "";
                 Swal.fire({
                     title: "¡Éxito!", 
                     text: "Los datos se han guardado correctamente.",
@@ -251,9 +307,7 @@ function crearProducto() {
                 });
             }
         });
-
     }
-
 }
 
 async function listarProveedores() {
@@ -327,5 +381,38 @@ function importarClientes() {
                 showConfirmButton: false
             });
         });
+    });
+}
+
+function changes() {
+    const inputCosto = document.getElementById("costo");
+    const divPorcentajes = document.getElementById("divPorcentajes");
+
+    if (!inputCosto || !divPorcentajes) return;
+
+      const formatearCOP = new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        minimumFractionDigits: 0
+    });
+
+    inputCosto.addEventListener("input", function () {
+        const costo = parseFloat(inputCosto.value.replace(/[^0-9.]/g, '').replace(",", "."));
+
+        if (isNaN(costo) || costo <= 0) {
+            divPorcentajes.innerHTML = "";
+            return;
+        }
+
+        const porcentajes = [10, 15, 25];
+        let html = "<label class='form-label'>Precios sugeridos:</label><ul class='list-group'>";
+
+        porcentajes.forEach(porcentaje => {
+            const precio = costo * (1 + porcentaje / 100);
+             html += `<li class='list-group-item'>${porcentaje}%: <strong>${formatearCOP.format(precio)}</strong></li>`;
+        });
+
+        html += "</ul>";
+        divPorcentajes.innerHTML = html;
     });
 }

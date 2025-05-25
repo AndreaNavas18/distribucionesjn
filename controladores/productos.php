@@ -165,3 +165,32 @@ function editarProducto($aForm) {
     }
     $db->CompleteTrans();
 }
+
+function crearProducto($aForm) {
+    global $db;
+    $sql = "SELECT id, nombre, precioventa, costo, idproveedor FROM productos WHERE id=0";
+    $result = $db->Execute($sql);
+    $registro = array(
+        'nombre' => $db->addQ($aForm['nombre']),
+        'precioventa' => $aForm['precioventa'],
+        'costo' => $aForm['costo'],
+        'idproveedor' => $aForm['idproveedor']
+    );
+    $db->StartTrans();
+    if (!$result) {
+        $sqlInsert = $db->GetInsertSQL($result, $registro);
+    }
+    if (isset($sqlInsert) && $sqlInsert !== false) {
+        error_log("sqlInsert: " . $sqlInsert);
+        $executeInsert = $db->Execute($sqlInsert);
+        if ($executeInsert) {
+            $db->CompleteTrans();
+            return ["mensaje" => "Producto creado con éxito"];
+        } else {
+            $db->FailTrans();
+            return ["error" => "Error al crear el producto"];
+        }
+    } else {
+        return ["mensaje" => "No se encontraron cambios para crear"];
+    }
+}
