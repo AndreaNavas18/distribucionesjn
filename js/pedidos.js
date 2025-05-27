@@ -471,6 +471,11 @@ async function cargarPedidos(filtro = "") {
             pedidosFiltrados = pedidosFiltrados.filter(pedido => pedido.estado != 1);
         }
 
+         if ( $.fn.dataTable.isDataTable("#tablaHistorialP") ) {
+            $('#tablaHistorialP').DataTable().clear().destroy();
+        }
+
+
         const pedidos = document.getElementById("pedidos");
 
         if (pedidos) {
