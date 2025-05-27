@@ -98,6 +98,20 @@ async function cargarDatosPedido(idPedido) {
             <td>${formatearMoneda(producto.cantidad * producto.preciosugerido)}</td>
             <td><textarea class='form-control' name='observacionproducto'>${producto.observacionproducto || producto.observacionproducto != null ? producto.observacionproducto : ""}</textarea></td>
             <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
+            <td>
+            <div class="form-check">
+                <input 
+                class="form-check-input no-orden" 
+                type="checkbox" 
+                value="${producto.id}" 
+                ${producto.noorden == 1 ? "checked" : ""}
+                id="noorden-${producto.id}"
+                >
+                <label class="form-check-label" for="noorden-${producto.id}">
+                No incluir
+                </label>
+            </div>
+            </td>
         `;
 
         fila.querySelector(".btnEliminar").addEventListener("click", function () {
@@ -311,6 +325,22 @@ async function agregarProducto() {
             <td>${formatearMoneda(subSugerido)}</td>
             <td><textarea class='form-control' name='observacionproducto'></textarea></td>
             <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
+            <td>
+             <div class="form-check">
+                <input 
+                    class="form-check-input no-orden" 
+                    type="checkbox" 
+                    value="${idProducto}" 
+                    id="noorden-${idProducto}"
+                    title="Marcar si NO se debe incluir este producto en la orden"
+                >
+                <label class="form-check-label small" for="noorden-${idProducto}">
+                    No incluir
+                </label>
+            </div>
+            </td>
+            
+            
         `;
 
         fila.querySelector(".btnEliminar").addEventListener("click", function () {
@@ -400,7 +430,8 @@ function guardarPedido(idPedido = null) {
             cantidad: parseInt(fila.querySelector(".cantidadproducto").value, 10),
             preciofinal: parseFloat(fila.cells[2]?.textContent.trim().replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.')),
             observacionproducto: fila.querySelector("textarea[name='observacionproducto']").value.trim(),
-            preciosugerido: parseFloat(fila.cells[4]?.textContent.trim().replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.'))
+            preciosugerido: parseFloat(fila.cells[4]?.textContent.trim().replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.')),
+            noorden: fila.querySelector(".no-orden").checked ? 1 : 0
         })).filter(p => p.id && p.cantidad);
     
         if (productos.length === 0) {

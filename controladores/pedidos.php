@@ -75,7 +75,7 @@ function  guardarPedido($aForm) {
     $observacion = $aForm['observacion'];
     $idPedidoEdita = $aForm['idPedido'];
     if ($idPedidoEdita) {
-        $sqlActuales = "SELECT idproducto, cantidad, observacionproducto, preciosugerido ".
+        $sqlActuales = "SELECT idproducto, cantidad, observacionproducto, preciosugerido, noorden ".
         "FROM detallepedidosfacturas ".
         "WHERE idpedido = " . intval($idPedidoEdita);
         $resActuales = $db->Execute($sqlActuales);
@@ -85,7 +85,8 @@ function  guardarPedido($aForm) {
             $productosExistentes[$idProd] = [
                 "cantidad" => (int)$resActuales->fields['cantidad'],
                 "observacionproducto" => $resActuales->fields['observacionproducto'],
-                "preciosugerido" => (float)$resActuales->fields['preciosugerido']
+                "preciosugerido" => (float)$resActuales->fields['preciosugerido'],
+                "noorden" => $resActuales->fields['noorden'] == 1 ? 1 : null
             ];
             $resActuales->MoveNext();
         }
@@ -120,6 +121,7 @@ function  guardarPedido($aForm) {
             $cantidad = $producto['cantidad'];
             $observacionproducto = $producto['observacionproducto'];
             $sugerido = $producto['preciosugerido'];
+            $noorden = isset($producto['noorden']) && $producto['noorden'] ? 1 : null;
 
             if (isset($productosExistentes[$idProducto])) {
                 // Comparamos para ver si hay cambios
@@ -129,7 +131,7 @@ function  guardarPedido($aForm) {
                     $actual['observacionproducto'] !== $observacionproducto ||
                     $actual['preciosugerido'] != $sugerido) {
                     
-                    $sqlDetalle = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido ".
+                    $sqlDetalle = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido, noorden ".
                     "FROM detallepedidosfacturas ".
                     "WHERE idpedido = $idPedido AND idproducto = $idProducto";
                     $detalle = $db->Execute($sqlDetalle);
@@ -137,7 +139,8 @@ function  guardarPedido($aForm) {
                     $registroDetalle = [
                         "cantidad" => $cantidad,
                         "observacionproducto" => $observacionproducto,
-                        "preciosugerido" => $sugerido
+                        "preciosugerido" => $sugerido,
+                        "noorden" => $noorden
                     ];
 
                     $sqlUpdate = $db->GetUpdateSQL($detalle, $registroDetalle);
@@ -151,7 +154,7 @@ function  guardarPedido($aForm) {
 
             } else {
                 // Producto nuevo -> INSERT
-                $sqlInsertDummy = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido ".
+                $sqlInsertDummy = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido, noorden ".
                 "FROM detallepedidosfacturas WHERE 1=0";
                 $dummy = $db->Execute($sqlInsertDummy);
 
@@ -160,7 +163,8 @@ function  guardarPedido($aForm) {
                     "idproducto" => $idProducto,
                     "cantidad" => $cantidad,
                     "observacionproducto" => $observacionproducto,
-                    "preciosugerido" => $sugerido
+                    "preciosugerido" => $sugerido,
+                    "noorden" => $noorden
                 ];
 
                 $sqlInsert = $db->GetInsertSQL($dummy, $registroInsert);
@@ -262,8 +266,8 @@ function verOrdenCompra($aForm) {
             "LEFT JOIN clientes cl ON ped.idcliente = cl.id ".
             "LEFT JOIN proveedores pv ON pod.idproveedor = pv.id ".
             "WHERE ped.fecha BETWEEN '" . $fechaini . "' AND '" . $fechafin ."' ". $rutasql . $pvsql .
-            " GROUP BY $selectruta pod.nombre, pod.costo, pv.proveedor ".
-            "ORDER BY pod.nombre $orderruta";
+            " AND dep.noorden IS NULL GROUP BY $selectruta pod.nombre, pod.costo, pv.proveedor ".
+            "ORDER BY pv.proveedor $orderruta";
         error_log("SQL: " . $sql);
         $result = $db->GetArray($sql);
 
@@ -283,7 +287,8 @@ function verPedido($idPedido) {
     "WHERE pd.id =" . $idPedido;
     $pedido = $db->GetRow($sqlPedido);
 
-    $sqlDetalle = "SELECT dp.id, dp.idproducto, dp.cantidad, dp.observacionproducto, dp.estado, dp.preciosugerido, pr.nombre, pr.precioventa, dp.faltante FROM detallepedidosfacturas dp ".
+    $sqlDetalle = "SELECT dp.id, dp.idproducto, dp.cantidad, dp.observacionproducto, dp.estado, ".
+    "dp.preciosugerido, pr.nombre, pr.precioventa, dp.faltante, dp.noorden FROM detallepedidosfacturas dp ".
     "LEFT JOIN productos pr ON dp.idproducto = pr.id ".
     "WHERE dp.idpedido =" . $idPedido;
     $detallepedido = $db->GetArray($sqlDetalle);
