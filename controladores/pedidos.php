@@ -68,12 +68,27 @@ echo json_encode($response);
 
 function  guardarPedido($aForm) {
     global $db;
+    $productosExistentes = [];
     $r = false;
     $productos = $aForm['productos'];
     $cliente = $aForm['cliente'];
     $observacion = $aForm['observacion'];
     $idPedidoEdita = $aForm['idPedido'];
     if ($idPedidoEdita) {
+        $sqlActuales = "SELECT idproducto, cantidad, observacionproducto, preciosugerido ".
+        "FROM detallepedidosfacturas ".
+        "WHERE idpedido = " . intval($idPedidoEdita);
+        $resActuales = $db->Execute($sqlActuales);
+
+        while (!$resActuales->EOF) {
+            $idProd = $resActuales->fields['idproducto'];
+            $productosExistentes[$idProd] = [
+                "cantidad" => (int)$resActuales->fields['cantidad'],
+                "observacionproducto" => $resActuales->fields['observacionproducto'],
+                "preciosugerido" => (float)$resActuales->fields['preciosugerido']
+            ];
+            $resActuales->MoveNext();
+        }
         $whereEdita = "id=" . $idPedidoEdita;
     } else {
         $whereEdita = "id=0";
@@ -106,30 +121,59 @@ function  guardarPedido($aForm) {
             $observacionproducto = $producto['observacionproducto'];
             $sugerido = $producto['preciosugerido'];
 
-            $sqlDetalle = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido ".
-            " FROM detallepedidosfacturas WHERE idpedido=" . $idPedido . " AND idproducto=" . $idProducto;
-            $detalle = $db->Execute($sqlDetalle);
-            error_log("SQL Detalle: " . $sqlDetalle);
-            $registroDetalle = [
-                "idpedido" => $idPedido,
-                "idproducto" => $idProducto,
-                "cantidad" => $cantidad,
-                "observacionproducto" => $observacionproducto,
-                "preciosugerido" => $sugerido
-            ];
+            if (isset($productosExistentes[$idProducto])) {
+                // Comparamos para ver si hay cambios
+                $actual = $productosExistentes[$idProducto];
 
-            if ($detalle && $detalle->RecordCount() > 0) {
-                error_log("Detalle existe");
-                $sqlDetalle2 = $db->GetUpdateSQL($detalle, $registroDetalle);
+                if ($actual['cantidad'] != $cantidad ||
+                    $actual['observacionproducto'] !== $observacionproducto ||
+                    $actual['preciosugerido'] != $sugerido) {
+                    
+                    $sqlDetalle = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido ".
+                    "FROM detallepedidosfacturas ".
+                    "WHERE idpedido = $idPedido AND idproducto = $idProducto";
+                    $detalle = $db->Execute($sqlDetalle);
+
+                    $registroDetalle = [
+                        "cantidad" => $cantidad,
+                        "observacionproducto" => $observacionproducto,
+                        "preciosugerido" => $sugerido
+                    ];
+
+                    $sqlUpdate = $db->GetUpdateSQL($detalle, $registroDetalle);
+                    if ($sqlUpdate) {
+                        $db->Execute($sqlUpdate);
+                    }
+                }
+
+                // Lo marcamos como procesado para luego saber cuáles eliminar
+                unset($productosExistentes[$idProducto]);
+
             } else {
-                error_log("No existe detalle");
-                $sqlDetalle2 = $db->GetInsertSQL($detalle, $registroDetalle);
+                // Producto nuevo -> INSERT
+                $sqlInsertDummy = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido ".
+                "FROM detallepedidosfacturas WHERE 1=0";
+                $dummy = $db->Execute($sqlInsertDummy);
+
+                $registroInsert = [
+                    "idpedido" => $idPedido,
+                    "idproducto" => $idProducto,
+                    "cantidad" => $cantidad,
+                    "observacionproducto" => $observacionproducto,
+                    "preciosugerido" => $sugerido
+                ];
+
+                $sqlInsert = $db->GetInsertSQL($dummy, $registroInsert);
+                $db->Execute($sqlInsert);
             }
-            error_log("SQL Detalle2: " . $sqlDetalle2);
-            if ($sqlDetalle2) {
-                error_log("SQL Detalle: " . $sqlDetalle2);
-                $db->Execute($sqlDetalle2);
-            }
+            error_log("Producto $idProducto actualizado");
+            error_log("Producto $idProducto insertado");
+            error_log("Producto $idProducto eliminado");
+            
+        }
+        foreach ($productosExistentes as $idProductoEliminar => $datos) {
+            $sqlDelete = "DELETE FROM detallepedidosfacturas WHERE idpedido = $idPedido AND idproducto = $idProductoEliminar";
+            $db->Execute($sqlDelete);
         }
         $db->CompleteTrans();
         

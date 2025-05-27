@@ -88,18 +88,16 @@ async function cargarDatosPedido(idPedido) {
 
     data.detalle.forEach((producto) => {
         const fila = document.createElement("tr");
-
+        fila.setAttribute("data-id", producto.idproducto);
         fila.innerHTML = `
-        <tr>
             <td><input type='number' min='1' step='1' class='form-control cantidadproducto' name='cantidad' value='${producto.cantidad || producto.cantidad != null ? producto.cantidad : ""}'></td>
             <td>${producto.nombre}</td>
             <td>${formatearMoneda(producto.precioventa)}</td>
             <td>${formatearMoneda(producto.cantidad * producto.precioventa)}</td>
             <td>${formatearMoneda(producto.preciosugerido)}</td>
             <td>${formatearMoneda(producto.cantidad * producto.preciosugerido)}</td>
-            <td><input type='text-area' class='form-control' name='observacionproducto' value='${producto.observacionproducto || producto.observacionproducto != null ? producto.observacionproducto : ""}'></td>
+            <td><textarea class='form-control' name='observacionproducto'>${producto.observacionproducto || producto.observacionproducto != null ? producto.observacionproducto : ""}</textarea></td>
             <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
-        </tr>
         `;
 
         fila.querySelector(".btnEliminar").addEventListener("click", function () {
@@ -224,6 +222,15 @@ async function agregarProducto() {
     const divPrecios = document.getElementById("preciosPosibles");
     tdIdProducto.style.display = "none";
 
+    if (inputCantidad && btnAgregar) {
+        inputCantidad.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                btnAgregar.click();
+            }
+        });
+    }
+
     if (!btnAgregar || !btnCantidad || !selectProductos || !inputCantidad || !tablaPedidoBody || !totalPedidoInput) {
         console.error("Uno o más elementos no existen en el DOM");
         return;
@@ -302,7 +309,7 @@ async function agregarProducto() {
             <td>${formatearMoneda(subTotal)}</td>
             <td>${formatearMoneda(precioFinal)}</td>
             <td>${formatearMoneda(subSugerido)}</td>
-            <td><input type='text-area' class='form-control' name='observacionproducto'></td>
+            <td><textarea class='form-control' name='observacionproducto'></textarea></td>
             <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
         `;
 
@@ -369,11 +376,11 @@ function guardarPedido(idPedido = null) {
             const cantidad = parseInt(cantidadInput.value, 10);
 
             if (isNaN(cantidad) || cantidad < 1) {
-                filasConErrores.push(index + 1); // guarda el número de la fila (solo visual)
-                cantidadInput.classList.add("input-error"); // clase para resaltar
-                cantidadInput.focus(); // hace foco al primero que falle (si se quiere)
+                filasConErrores.push(index + 1);
+                cantidadInput.classList.add("input-error");
+                cantidadInput.focus();
             } else {
-                cantidadInput.classList.remove("input-error"); // limpia si estaba mal antes
+                cantidadInput.classList.remove("input-error");
             }
         });
 
@@ -392,7 +399,7 @@ function guardarPedido(idPedido = null) {
             id: parseInt(fila.getAttribute("data-id"), 10),
             cantidad: parseInt(fila.querySelector(".cantidadproducto").value, 10),
             preciofinal: parseFloat(fila.cells[2]?.textContent.trim().replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.')),
-            observacionproducto: fila.querySelector("input[name='observacionproducto']").value,
+            observacionproducto: fila.querySelector("textarea[name='observacionproducto']").value.trim(),
             preciosugerido: parseFloat(fila.cells[4]?.textContent.trim().replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.'))
         })).filter(p => p.id && p.cantidad);
     
@@ -428,7 +435,18 @@ function guardarPedido(idPedido = null) {
                 timer: 2000,
                 showConfirmButton: false
             });
-            tablaPedidoBody.innerHTML = "";
+            if (idPedido) {
+                setTimeout(() => {
+                    window.location.href = '../index.html';
+                }, 2000);
+            } else {
+                tablaPedidoBody.innerHTML = "";
+                document.getElementById("totalPedido").value = "";
+                document.getElementById("slcClientes").value = "elegir";
+                document.getElementById("preciosPosibles").innerHTML = "";
+                document.getElementById("preciosPosibles").style.display = "none";
+                document.getElementById("observacion").value = "";
+            }
         } else {
             Swal.fire({
                 title: "Error!",
@@ -438,13 +456,6 @@ function guardarPedido(idPedido = null) {
                 showConfirmButton: false
             });
         }
-
-        document.getElementById("totalPedido").value = "";
-        document.getElementById("slcClientes").value = "elegir";
-        document.getElementById("preciosPosibles").innerHTML = "";
-        document.getElementById("preciosPosibles").style.display = "none";
-        document.getElementById("observacion").value = "";
-
     });
 }
 
