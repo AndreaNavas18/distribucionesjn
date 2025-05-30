@@ -268,7 +268,7 @@ function verOrdenCompra($aForm) {
             "LEFT JOIN clientes cl ON ped.idcliente = cl.id ".
             "LEFT JOIN proveedores pv ON pod.idproveedor = pv.id ".
             "WHERE ped.fecha BETWEEN '" . $fechaini . "' AND '" . $fechafin ."' ". $rutasql . $pvsql .
-            " AND dep.noorden != 1 GROUP BY $selectruta pod.nombre, pod.costo, pv.proveedor ".
+            " AND (dep.noorden != 1 OR dep.noorden IS NULL) GROUP BY $selectruta pod.nombre, pod.costo, pv.proveedor ".
             "ORDER BY pv.proveedor $orderruta";
         error_log("SQL: " . $sql);
         $result = $db->GetArray($sql);
