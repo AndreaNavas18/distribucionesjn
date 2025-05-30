@@ -121,7 +121,8 @@ function  guardarPedido($aForm) {
             $cantidad = $producto['cantidad'];
             $observacionproducto = $producto['observacionproducto'];
             $sugerido = $producto['preciosugerido'];
-            $noorden = isset($producto['noorden']) && $producto['noorden'] ? 1 : null;
+            $noorden = $producto['noorden'];
+            error_log("no orden : " . $noorden);
 
             if (isset($productosExistentes[$idProducto])) {
                 // Comparamos para ver si hay cambios
@@ -129,12 +130,13 @@ function  guardarPedido($aForm) {
 
                 if ($actual['cantidad'] != $cantidad ||
                     $actual['observacionproducto'] !== $observacionproducto ||
-                    $actual['preciosugerido'] != $sugerido) {
+                    $actual['preciosugerido'] != $sugerido || $actual['noorden'] != $noorden) {
                     
                     $sqlDetalle = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido, noorden ".
                     "FROM detallepedidosfacturas ".
                     "WHERE idpedido = $idPedido AND idproducto = $idProducto";
                     $detalle = $db->Execute($sqlDetalle);
+                    error_log("sql UPDATE Detalle: " . $sqlDetalle);
 
                     $registroDetalle = [
                         "cantidad" => $cantidad,
@@ -157,7 +159,7 @@ function  guardarPedido($aForm) {
                 $sqlInsertDummy = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido, noorden ".
                 "FROM detallepedidosfacturas WHERE 1=0";
                 $dummy = $db->Execute($sqlInsertDummy);
-
+                error_log("sql INSERT Detalle: " . $sqlInsertDummy);
                 $registroInsert = [
                     "idpedido" => $idPedido,
                     "idproducto" => $idProducto,

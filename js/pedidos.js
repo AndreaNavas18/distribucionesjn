@@ -147,7 +147,7 @@ async function obtenerClientes() {
     const clientes = document.getElementById("slcClientes");
     if (clientes) {
         clientes.innerHTML = "<option value=''>Seleccione un cliente</option>" + clientesArray.map(cliente =>
-            `<option value="${cliente.id}">${cliente.nombre + " - " + (cliente.ubicacion != null ? cliente.ubicacion : "")}</option>`
+            `<option value="${cliente.id}">${cliente.nombre + " - " + (cliente.ubicacion != null ? cliente.ubicacion : "") + " - Ruta: " + (cliente.ruta != null ? cliente.ruta : "")}</option>`
         ).join('');
     } else {
         console.error("El elemento 'slcClientes' no existe en el DOM");
@@ -433,6 +433,8 @@ function guardarPedido(idPedido = null) {
             preciosugerido: parseFloat(fila.cells[4]?.textContent.trim().replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.')),
             noorden: fila.querySelector(".no-orden").checked ? 1 : 0
         })).filter(p => p.id && p.cantidad);
+        
+        console.log("Productos a guardar:", productos);
     
         if (productos.length === 0) {
             Swal.fire({

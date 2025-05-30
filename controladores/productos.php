@@ -168,7 +168,7 @@ function editarProducto($aForm) {
 
 function crearProducto($aForm) {
     global $db;
-    $sql = "SELECT id, nombre, precioventa, costo, idproveedor FROM productos WHERE id=0";
+    $sql = "SELECT id, nombre, precioventa, costo, idproveedor FROM productos WHERE 1=0";
     $result = $db->Execute($sql);
     $registro = array(
         'nombre' => $db->addQ($aForm['nombre']),
@@ -177,7 +177,7 @@ function crearProducto($aForm) {
         'idproveedor' => $aForm['idproveedor']
     );
     $db->StartTrans();
-    if (!$result) {
+    if ($result && $result->RecordCount() == 0) {
         $sqlInsert = $db->GetInsertSQL($result, $registro);
     }
     if (isset($sqlInsert) && $sqlInsert !== false) {
