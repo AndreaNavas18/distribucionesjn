@@ -16,8 +16,8 @@ $incluirProducto = $datos["incluirProducto"] ?? false;
 $incluirCantidad = $datos["incluirCantidad"] ?? false;
 $incluirCosto = $datos["incluirCosto"] ?? false;
 $incluirProveedor = $datos["incluirProveedor"] ?? false;
-$incluirRuta = $datos["incluirRuta"] ?? false;
 $incluirObservacion = $datos["incluirObservacion"] ?? false;
+$incluirRuta = $datos["incluirRuta"] ?? false;
 
 $mpdf = new Mpdf([
     'margin_left' => 10,
@@ -55,8 +55,8 @@ if ($incluirProducto) $html .= '<th>Producto</th>';
 if ($incluirCantidad) $html .= '<th>Cantidad</th>';
 if ($incluirCosto) $html .= '<th>Costo</th>';
 if ($incluirProveedor) $html .= '<th>Proveedor</th>';
-if ($incluirRuta) $html .= '<th>Ruta</th>';
 if ($incluirObservacion) $html .= '<th>Observación</th>';
+if ($incluirRuta) $html .= '<th>Ruta</th>';
 
 $html .= '</tr></thead><tbody>';
 
@@ -66,8 +66,8 @@ foreach ($ordenes as $orden) {
     if ($incluirCantidad) $html .= "<td>{$orden['cantidad']}</td>";
     if ($incluirCosto) $html .= "<td>" . (($orden['costo'] != 'null') ? $orden['costo'] : '') . "</td>";
     if ($incluirProveedor) $html .= "<td>" . (($orden['proveedor'] != 'null') ? $orden['proveedor'] : '') . "</td>";
-    if ($incluirRuta) $html .= "<td>" . (($orden['ruta'] != 'null') ? $orden['ruta'] : '') . "</td>";
     if ($incluirObservacion) $html .= "<td>" . (($orden['observacion'] != 'null') ? $orden['observacion'] : '') . "</td>";
+    if ($incluirRuta) $html .= "<td>" . (($orden['ruta'] != 'null') ? $orden['ruta'] : '') . "</td>";
     $html .= "</tr>";
 }
 

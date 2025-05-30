@@ -590,13 +590,19 @@ function verOrdenCompra() {
             }
 
             tablaOrdenCompra.innerHTML = data.orden.map(orden => `
-                <tr>
+                <tr 
+                data-producto="${orden.nombre}" 
+                data-cantidad="${orden.cantidad}" 
+                data-costo="${orden.costo}" 
+                data-proveedor="${orden.proveedor || ''}" 
+                data-observacion="${orden.observacion || ''}" 
+                data-ruta="${orden.ruta || ''}">
                     <td>${orden.nombre}</td>
                     <td>${orden.cantidad}</td>
                     <td>${orden.costo}</td>
-                    <td>${orden.proveedor ? orden.proveedor : ''}</td>
+                    <td>${orden.proveedor || ''}</td>
+                    <td>${orden.observacion || ''}</td>
                     ${orden.ruta ? `<td>${orden.ruta}</td>` : ''}
-                    <td>${orden.observacion ? orden.observacion : ''}</td>
                 </tr>
             `).join("");
             
@@ -646,18 +652,18 @@ function generarOrden() {
     
         let datos = [];
         document.querySelectorAll("#ordenesCompra tr").forEach(row => {
-            let cols = row.querySelectorAll("td");
-    
             let fila = {
-                producto: document.getElementById("chkProducto").checked ? cols[0]?.innerText || "" : null,
-                cantidad: document.getElementById("chkCantidad").checked ? cols[1]?.innerText || "" : null,
-                costo: document.getElementById("chkCosto").checked ? cols[2]?.innerText || "" : null,
-                proveedor: document.getElementById("chkProveedor").checked ? cols[3]?.innerText || "" : null,
-                ruta: document.getElementById("chkRuta").checked ? cols[4]?.innerText || "" : null,
-                observacion: document.getElementById("chkObservacion").checked ? cols[5]?.innerText || "" : null
+                producto: document.getElementById("chkProducto").checked ? row.dataset.producto : null,
+                cantidad: document.getElementById("chkCantidad").checked ? row.dataset.cantidad : null,
+                costo: document.getElementById("chkCosto").checked ? row.dataset.costo : null,
+                proveedor: document.getElementById("chkProveedor").checked ? row.dataset.proveedor : null,
+                observacion: document.getElementById("chkObservacion").checked ? row.dataset.observacion : null,
+                ruta: document.getElementById("chkRuta").checked ? row.dataset.ruta : null
             };
             datos.push(fila);
         });
+
+        console.log("Datos a enviar: ", datos);
     
         fetch("../controladores/generarordenpdf.php", {
             method: "POST",
@@ -668,8 +674,8 @@ function generarOrden() {
                 incluirCantidad: document.getElementById("chkCantidad").checked,
                 incluirCosto: document.getElementById("chkCosto").checked,
                 incluirProveedor: document.getElementById("chkProveedor").checked,
-                incluirRuta: document.getElementById("chkRuta").checked,
-                incluirObservacion: document.getElementById("chkObservacion").checked
+                incluirObservacion: document.getElementById("chkObservacion").checked,
+                incluirRuta: document.getElementById("chkRuta").checked
             })
         })
         .then(response => response.json())
