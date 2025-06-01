@@ -64,12 +64,21 @@ foreach ($ids as $idPedido) {
     $mpdf->SetHTMLHeader($encabezadoHTML);
     $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($htmlFactura, \Mpdf\HTMLParserMode::HTML_BODY);
-
     $pdfDir = __DIR__ . '/../pdfs';
     if (!file_exists($pdfDir)) {
         mkdir($pdfDir, 0777, true);
     }
-    $pdfFileName = "factura_{$pedido['id']}.pdf";
+    $meses = [
+        1 => 'enero', 2 => 'febrero', 3 => 'marzo', 4 => 'abril',
+        5 => 'mayo', 6 => 'junio', 7 => 'julio', 8 => 'agosto',
+        9 => 'septiembre', 10 => 'octubre', 11 => 'noviembre', 12 => 'diciembre'
+    ];
+    $dia = date('d');
+    $mes = $meses[(int)date('m')];
+    $anio = date('Y');
+    $fechaHoy = "{$dia}{$mes}{$anio}";
+    $nombreCliente = preg_replace('/[^A-Za-z0-9_\-]/', '_', $pedido['cliente_nombre']);
+    $pdfFileName = "{$fechaHoy}_{$nombreCliente}.pdf";
     $pdfPath = $pdfDir . '/' . $pdfFileName;
 
     try {

@@ -232,15 +232,16 @@ function verOrdenCompra($aForm) {
         return "Error: Fecha no válida.";
     }
 
-    // $rutas = isset($aForm['ruta']) && is_array($aForm['ruta']) ? array_map('intval', $aForm['ruta']) : [];
-    // $proveedores = isset($aForm['proveedor']) && is_array($aForm['proveedor']) ? array_map('intval', $aForm['proveedor']) : [];
-
     $proveedores = isset($aForm['proveedor']) && is_array($aForm['proveedor']) 
     ? array_filter(array_map('intval', $aForm['proveedor']), function($v) { return $v > 0; })
     : [];
 
     $rutas = isset($aForm['ruta']) && is_array($aForm['ruta'])
     ? array_filter(array_map('intval', $aForm['ruta']), function($v) { return $v > 0; })
+    : [];
+
+    $pedidosFiltrados = isset($aForm['pedidos']) && is_array($aForm['pedidos'])
+    ? array_filter(array_map('intval', $aForm['pedidos']), function($v) { return $v > 0; })
     : [];
 
     try {
@@ -260,20 +261,35 @@ function verOrdenCompra($aForm) {
             $pvsql = "";
         }
 
+        $pedidosql = !empty($pedidosFiltrados)
+        ? " AND ped.id IN (" . implode(",", $pedidosFiltrados) . ")"
+        : "";
+
         $sql = "SELECT $selectruta pod.nombre, SUM(dep.cantidad) AS cantidad, pod.costo, pv.proveedor, ".
-            "STRING_AGG(DISTINCT dep.observacionproducto, ' - ' ORDER BY dep.observacionproducto) AS observacion ".
-            "FROM productos pod ".
-            "INNER JOIN detallepedidosfacturas dep ON pod.id = dep.idproducto ".
-            "INNER JOIN pedidos ped ON dep.idpedido = ped.id ".
-            "LEFT JOIN clientes cl ON ped.idcliente = cl.id ".
-            "LEFT JOIN proveedores pv ON pod.idproveedor = pv.id ".
-            "WHERE ped.fecha BETWEEN '" . $fechaini . "' AND '" . $fechafin ."' ". $rutasql . $pvsql .
-            " AND (dep.noorden != 1 OR dep.noorden IS NULL) GROUP BY $selectruta pod.nombre, pod.costo, pv.proveedor ".
-            "ORDER BY pv.proveedor $orderruta";
-        error_log("SQL: " . $sql);
+        "STRING_AGG(DISTINCT dep.observacionproducto, ' - ' ORDER BY dep.observacionproducto) AS observacion ".
+        "FROM productos pod ".
+        "INNER JOIN detallepedidosfacturas dep ON pod.id = dep.idproducto ".
+        "INNER JOIN pedidos ped ON dep.idpedido = ped.id ".
+        "LEFT JOIN clientes cl ON ped.idcliente = cl.id ".
+        "LEFT JOIN proveedores pv ON pod.idproveedor = pv.id ".
+        "WHERE ped.fecha BETWEEN '" . $fechaini . "' AND '" . $fechafin ."' ". $rutasql . $pvsql . $pedidosql .
+        " AND (dep.noorden != 1 OR dep.noorden IS NULL) GROUP BY $selectruta pod.nombre, pod.costo, pv.proveedor ".
+        "ORDER BY pv.proveedor $orderruta";
+        error_log("SQL ORDEN: " . $sql);
         $result = $db->GetArray($sql);
 
-        return $result ?? ["mensaje" => "No se encontraron resultados."];
+        $sqlpedidos = "SELECT ped.id, ped.fecha, cl.nombre AS cliente, cl.ubicacion FROM pedidos ped ".
+        "LEFT JOIN clientes cl ON ped.idcliente = cl.id ".
+        "WHERE ped.fecha BETWEEN '$fechaini' AND '$fechafin' " . $rutasql .
+        " GROUP BY ped.id, ped.fecha, cl.nombre, cl.ubicacion ".
+        "ORDER BY ped.fecha DESC";
+        $pedidos = $db->GetArray($sqlpedidos);
+        error_log("SQL ORDEN Pedidos: " . $sqlpedidos);
+
+        return [
+            "orden" => $result ?? [],
+            "pedidos" => $pedidos ?? []
+        ];
 
     } catch (Exception $e) {
         error_log("Error en verOrdenCompra: " . $e->getMessage());

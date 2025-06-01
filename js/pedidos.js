@@ -7,10 +7,11 @@ document.addEventListener("DOMContentLoaded", function() {
         const idPedido = urlParams.get('id');
         inicialTomaPedidos(idPedido);
         listarProductos();
-        obtenerClientes();
         agregarProducto();
         if (idPedido) {
             cargarDatosPedido(idPedido);
+        } else {
+            obtenerClientes();
         }
         guardarPedido(idPedido);
     } else if (vista === "historialPedidos") {
@@ -64,7 +65,6 @@ function listarProductos() {
                 inputCantidad.focus();
             }
         });
-
     }
 }
 
@@ -78,6 +78,8 @@ async function cargarDatosPedido(idPedido) {
         return;
     }
     console.log(data);
+
+    await obtenerClientes();
 
     selectClientes.value = data.pedido.idcliente;
     document.getElementById("totalPedido").value = formatearMoneda(data.pedido.total);
@@ -566,56 +568,95 @@ function imprimirPedidos() {
 }
 
 function verOrdenCompra() {
+     const btnFiltrar = document.getElementById("btnFiltrar");
+    // Elimina listeners previos
+    btnFiltrar.replaceWith(btnFiltrar.cloneNode(true));
     document.getElementById("btnFiltrar").addEventListener("click", async () => {
+        const seleccionados = new Set(
+            Array.from(document.querySelectorAll('input[name="pedidos[]"]:checked')).map(cb => String(cb.value))
+        );
+        console.log("Seleccionados antes de filtrar:", [...seleccionados]);
         document.getElementById("thRuta").style.display = "none";
+        const listaPedidosDiv = document.getElementById("listaPedidos");
         const form = document.getElementById("formFiltro");
         const formData = new FormData(form);
-        const rutasSeleccionadas = [...document.getElementById("slcRuta").selectedOptions].map(opt => opt.value);
-        const proveedoresSeleccionados = [...document.getElementById("slcProveedor").selectedOptions].map(opt => opt.value);
+        const rutasSeleccionadas = [...document.querySelectorAll('input[name="ruta[]"]:checked')].map(cb => cb.value);
+        const proveedoresSeleccionados = [...document.querySelectorAll('input[name="proveedor[]"]:checked')].map(cb => cb.value);
         const formDataObj = Object.fromEntries(formData.entries());
+        const pedidosSeleccionados = [...document.querySelectorAll('input[name="pedidos[]"]:checked')].map(cb => cb.value);
         formDataObj.ruta = rutasSeleccionadas;
         formDataObj.proveedor = proveedoresSeleccionados;
+        formDataObj.pedidos = pedidosSeleccionados;
 
-        const data = await pet("controladores/pedidos.php", {
+        const respuesta = await pet("controladores/pedidos.php", {
             funcion: "verordencompra",
             datosForm: formDataObj
         });
+
+        const data = respuesta.orden || {};
         
         const tablaOrdenCompra = document.getElementById("ordenesCompra");
-        if (data.orden && Array.isArray(data.orden)) {
-            console.log(data.orden);
-
-            if(data.orden[0] && data.orden[0].ruta) {
+        if (Array.isArray(data.orden) && data.orden.length > 0) {
+            if (data.orden[0].ruta) {
                 document.getElementById("thRuta").style.display = "block";
             }
 
-            tablaOrdenCompra.innerHTML = data.orden.map(orden => `
-                <tr 
-                data-producto="${orden.nombre}" 
-                data-cantidad="${orden.cantidad}" 
-                data-costo="${orden.costo}" 
-                data-proveedor="${orden.proveedor || ''}" 
-                data-observacion="${orden.observacion || ''}" 
-                data-ruta="${orden.ruta || ''}">
-                    <td>${orden.nombre}</td>
-                    <td>${orden.cantidad}</td>
-                    <td>${orden.costo}</td>
-                    <td>${orden.proveedor || ''}</td>
-                    <td>${orden.observacion || ''}</td>
-                    ${orden.ruta ? `<td>${orden.ruta}</td>` : ''}
-                </tr>
-            `).join("");
-            
+            let totalOrden = 0;
+
+            let filasHTML = data.orden.map((orden, index) => {
+                const cantidad = parseFloat(orden.cantidad) || 0;
+                const costo = parseFloat(orden.costo) || 0;
+
+                totalOrden += cantidad * costo;
+
+                return `
+                    <tr 
+                        data-producto="${orden.nombre}" 
+                        data-cantidad="${orden.cantidad}" 
+                        data-costo="${orden.costo}" 
+                        data-proveedor="${orden.proveedor || ''}" 
+                        data-observacion="${orden.observacion || ''}" 
+                        data-ruta="${orden.ruta || ''}">
+                        <td>${index + 1}</td>
+                        <td>${orden.nombre}</td>
+                        <td>${orden.cantidad}</td>
+                        <td>${orden.costo}</td>
+                        <td>${orden.proveedor || ''}</td>
+                        ${orden.ruta ? `<td>${orden.ruta}</td>` : ''}
+                        <td>${orden.observacion || ''}</td>
+                    </tr>
+                `;
+            }).join("");
+
+            tablaOrdenCompra.innerHTML = filasHTML;
+
+            document.getElementById("totalOrdenTexto").innerText = "TOTAL ORDEN: $" + totalOrden.toLocaleString('es-CO');
+
             generarOrden();
         } else {
             tablaOrdenCompra.innerHTML = "";
             // tablaOrdenCompra.innerHTML = "<tr><td colspan='6'>No hay órdenes de compra registradas</td></tr>";
             console.error("Error en la respuesta del servidor:", data.error);
         }
+
+        if (Array.isArray(data.pedidos) && data.pedidos.length > 0) {
+            console.log("Pedidos devueltos por el backend:", data.pedidos.map(p => p.id));
+            listaPedidosDiv.innerHTML = data.pedidos.map(pedido => `
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="pedidos[]" value="${pedido.id}" id="pedido${pedido.id}"
+                        ${seleccionados.has(String(pedido.id)) ? 'checked' : ''}>
+                    <label class="form-check-label" for="pedido${pedido.id}">
+                        Pedido #${pedido.id} - ${pedido.fecha} (${pedido.cliente || 'Sin cliente'} - ${pedido.ubicacion || 'Sin ubicación'})
+                    </label>
+                </div>
+            `).join('');
+        } else {
+            listaPedidosDiv.innerHTML = "<p>No se encontraron pedidos para los filtros seleccionados</p>";
+        }
     });
 }
 
-async function listarProveedores() {
+async function listarProveedoresold() {
     const selectProveedores = document.getElementById("slcProveedor");
     if(selectProveedores) {
         const data = await pet("controladores/productos.php", { funcion: "obtenerproveedores" });
@@ -635,6 +676,34 @@ async function listarProveedores() {
         }
     }
 }
+
+async function listarProveedores() {
+    const contenedor = document.getElementById("contenedorProveedores");
+
+    if (contenedor) {
+        const data = await pet("controladores/productos.php", { funcion: "obtenerproveedores" });
+
+        if (data.error) {
+            console.error("Error:", data.error);
+            contenedor.innerHTML = "<p class='text-danger'>Error al cargar proveedores</p>";
+            return;
+        }
+
+        if (Array.isArray(data.proveedores) && data.proveedores.length > 0) {
+            contenedor.innerHTML = data.proveedores.map(proveedor => `
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="proveedor[]" value="${proveedor.id}" id="proveedor${proveedor.id}">
+                    <label class="form-check-label" for="proveedor${proveedor.id}">
+                        ${proveedor.proveedor}
+                    </label>
+                </div>
+            `).join('');
+        } else {
+            contenedor.innerHTML = "<p>No hay proveedores registrados</p>";
+        }
+    }
+}
+
 
 function initCalendars() {
     const fechaFin = document.getElementById("fechaFin");
@@ -675,7 +744,8 @@ function generarOrden() {
                 incluirCosto: document.getElementById("chkCosto").checked,
                 incluirProveedor: document.getElementById("chkProveedor").checked,
                 incluirObservacion: document.getElementById("chkObservacion").checked,
-                incluirRuta: document.getElementById("chkRuta").checked
+                incluirRuta: document.getElementById("chkRuta").checked,
+                incluirTotal: document.getElementById("chkTotalOrden").checked
             })
         })
         .then(response => response.json())

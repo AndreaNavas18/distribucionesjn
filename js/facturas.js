@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log("utlParams" + urlParams);
         const idPedido = urlParams.get('id');
         console.log("idPedido" + idPedido);
+        agregarProducto();
         listarProductos();
         obtenerClientes();
         cargarPreFactura(idPedido);
@@ -78,6 +79,7 @@ function listarProductos() {
             minimumInputLength: 0,
             dropdownAutoWidth: true,
             width: '100%',
+            dropdownParent: $('#divTarjetaP'),
             ajax: {
                 url: SERVER + 'controladores/productos.php',
                 type: 'POST',
@@ -103,6 +105,13 @@ function listarProductos() {
                     };
                 },
                 cache: true
+            }
+        });
+
+        $('#slcProductos').on('select2:select', function (e) {
+            const inputCantidad = document.getElementById("cantidad");
+            if (inputCantidad) {
+                inputCantidad.focus();
             }
         });
     }
@@ -205,7 +214,8 @@ function changesPrefactura(idPedido) {
             const iddetalle = fila.getAttribute("data-id");
             const cantidadempacada = fila.querySelector("#cantempacar").value;
             const observacion = fila.querySelector("#observacionproducto").value;
-            return { iddetalle, cantidadempacada, observacion };
+            const idproducto = fila.getAttribute("data-idproducto");
+            return { iddetalle, cantidadempacada, observacion, idproducto };
         });
         console.log(cambios);
         const data = await pet("controladores/facturas.php", { funcion: "guardarprefactura", idpedido: idPedido, cambios: cambios });
@@ -235,4 +245,152 @@ function changesPrefactura(idPedido) {
         }
         console.log(data);
     });
+}
+
+async function agregarProducto() {
+    const btnAgregar = document.getElementById("btnAgregar");
+    const btnCantidad = document.getElementById("btnCantidad");
+    const selectProductos = document.getElementById("slcProductos");
+    const inputCantidad = document.getElementById("cantidad");
+    const tablaPreFacturaBody = document.querySelector("#tablaPreFactura tbody");
+    const tdIdProducto = document.getElementById("codigoProd");
+    const totalPedidoInput = document.getElementById("totalPedido");
+    const divPrecios = document.getElementById("preciosPosibles");
+    tdIdProducto.style.display = "none";
+
+    if (inputCantidad && btnAgregar) {
+        inputCantidad.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                btnAgregar.click();
+            }
+        });
+    }
+
+    if (!btnAgregar || !btnCantidad || !selectProductos || !inputCantidad || !tablaPreFacturaBody || !totalPedidoInput) {
+        console.error("Uno o más elementos no existen en el DOM");
+        return;
+    }
+
+    let infoProductos = [];
+
+    try {
+        const data = await pet("controladores/productos.php", { funcion: "obtenerproductos" });
+        if (data.productos && Array.isArray(data.productos)) {
+            infoProductos = data.productos;
+            console.log("Productos obtenidos:", data);
+        }
+    } catch (error) {
+        console.error("Error obteniendo productos:", error);
+    }
+
+    btnAgregar.addEventListener("click", function () {
+        const productoSeleccionado = selectProductos.options[selectProductos.selectedIndex];
+        const cantidad = inputCantidad.value;
+        
+        if (!productoSeleccionado.value || cantidad <= 0) {
+            Swal.fire({
+                title: "!!!", 
+                text: "Por favor, seleccione un producto y una cantidad válida.",
+                icon: "warning",
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+        
+        const idProducto = productoSeleccionado.value;
+        const nombreProducto = productoSeleccionado.text;
+        const producto = infoProductos.find(prod => prod.id == idProducto);
+        const productoYaAgregado = tablaPreFacturaBody.querySelector(`tr[data-id="${idProducto}"]`);
+        
+        if (!producto) {
+            console.error("Producto no encontrado en la lista.");
+            return;
+        }
+
+        if (productoYaAgregado) {
+            Swal.fire({
+                title: "!!!",
+                text: "Este producto ya se encuentra en el pedido.",
+                icon: "info",
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+        const precioProducto = parseFloat(producto.precioventa);
+        const precioSeleccionado = document.querySelector(".precio-btn.active");
+        const precioPersonalizadoElement = document.getElementById("precioPersonalizado");
+        const precioManual = precioPersonalizadoElement ? precioPersonalizadoElement.value : null;
+        
+        let precioFinal;
+        if (precioManual) {
+            precioFinal = parseFloat(precioManual);
+        } else if (precioSeleccionado) {
+            precioFinal = parseFloat(precioSeleccionado.dataset.precio);
+        } else {
+            precioFinal = "";
+        }
+        
+        const subTotal = precioProducto * cantidad;
+        const subSugerido = precioFinal * cantidad;
+
+        const fila = document.createElement("tr");
+        fila.setAttribute("data-id", idProducto);
+        fila.innerHTML = `
+            <td><input type='number' min='1' step='1' class='form-control cantidadproducto' name='cantidad' value='${cantidad}'></td>
+            <td>${nombreProducto}</td>
+            <td>${formatearMoneda(precioProducto)}</td>
+            <td>${formatearMoneda(subTotal)}</td>
+            <td>${formatearMoneda(precioFinal)}</td>
+            <td>${formatearMoneda(subSugerido)}</td>
+            <td><textarea class='form-control' name='observacionproducto'></textarea></td>
+            <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
+            <td>
+             <div class="form-check">
+                <input 
+                    class="form-check-input no-orden" 
+                    type="checkbox" 
+                    value="${idProducto}" 
+                    id="noorden-${idProducto}"
+                    title="Marcar si NO se debe incluir este producto en la orden"
+                >
+                <label class="form-check-label small" for="noorden-${idProducto}">
+                    No incluir
+                </label>
+            </div>
+            </td>
+            
+            
+        `;
+
+        fila.querySelector(".btnEliminar").addEventListener("click", function () {
+            fila.remove();
+            actualizarTotal(totalPedidoInput);
+        });
+
+        tablaPreFacturaBody.appendChild(fila);
+        inputCantidad.value = "";
+        $(selectProductos).val(null).trigger("change");
+        divPrecios.innerHTML = "";
+        divPrecios.style.display = "none";
+
+        actualizarTotal(totalPedidoInput);
+    });
+
+    btnCantidad.addEventListener("click", function () {
+        inputCantidad.value = 12;
+    });
+
+}
+
+function actualizarTotal(totalPedidoInput) {
+    let total = 0;
+    document.querySelectorAll("#tablaPreFactura tbody tr").forEach(fila => {
+        const textoSubtotal = fila.children[3].textContent;
+        const subTotal = parseFloat(textoSubtotal.replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.'));
+        total += subTotal;
+    });
+    totalPedidoInput.value = formatearMoneda(total);
 }

@@ -18,6 +18,7 @@ $incluirCosto = $datos["incluirCosto"] ?? false;
 $incluirProveedor = $datos["incluirProveedor"] ?? false;
 $incluirObservacion = $datos["incluirObservacion"] ?? false;
 $incluirRuta = $datos["incluirRuta"] ?? false;
+$incluirTotal = $datos["incluirTotal"] ?? false;
 
 $mpdf = new Mpdf([
     'margin_left' => 10,
@@ -50,7 +51,7 @@ $mpdf->WriteHTML("<h1>Orden de Compra</h1>");
 
 $html = '<table class="tabla">
     <thead><tr>';
-
+$html .= '<th>#</th>';
 if ($incluirProducto) $html .= '<th>Producto</th>';
 if ($incluirCantidad) $html .= '<th>Cantidad</th>';
 if ($incluirCosto) $html .= '<th>Costo</th>';
@@ -59,9 +60,12 @@ if ($incluirObservacion) $html .= '<th>Observación</th>';
 if ($incluirRuta) $html .= '<th>Ruta</th>';
 
 $html .= '</tr></thead><tbody>';
+$totalOrden = 0;
+$contador = 1;
 
 foreach ($ordenes as $orden) {
     $html .= "<tr>";
+    $html .= "<td>{$contador}</td>";
     if ($incluirProducto) $html .= "<td>{$orden['producto']}</td>";
     if ($incluirCantidad) $html .= "<td>{$orden['cantidad']}</td>";
     if ($incluirCosto) $html .= "<td>" . (($orden['costo'] != 'null') ? $orden['costo'] : '') . "</td>";
@@ -69,8 +73,17 @@ foreach ($ordenes as $orden) {
     if ($incluirObservacion) $html .= "<td>" . (($orden['observacion'] != 'null') ? $orden['observacion'] : '') . "</td>";
     if ($incluirRuta) $html .= "<td>" . (($orden['ruta'] != 'null') ? $orden['ruta'] : '') . "</td>";
     $html .= "</tr>";
+    $contador++;
+    $cantidad = is_numeric($orden['cantidad']) ? (float)$orden['cantidad'] : 0;
+    $costo = is_numeric($orden['costo']) ? (float)$orden['costo'] : 0;
+    $totalOrden += $cantidad * $costo;
 }
 
+if ($incluirTotal) {
+    $html .= '<tr><td colspan="' . (
+        ($contador + $incluirProducto + $incluirCantidad + $incluirCosto + $incluirProveedor + $incluirObservacion + $incluirRuta)
+    ) . '" style="text-align: right; font-weight: bold;">TOTAL ORDEN: $' . number_format($totalOrden, 0, ',', '.') . '</td></tr>';
+}
 $html .= '</tbody></table>';
 
 $mpdf->WriteHTML($html);

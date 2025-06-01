@@ -51,47 +51,72 @@ function guardarPrefactura ($idpedido, $cambios)
         $id = $detalle['iddetalle'];
         $empacada = $detalle['cantidadempacada'];
         $observacion = $detalle['observacion'];
+        $idproducto = isset($detalle['idproducto']) ? $detalle['idproducto'] : null;
 
-        $sqlDetalle1 = "SELECT id, idpedido, cantidad, faltante, observacionproducto FROM detallepedidosfacturas WHERE id=" . $id;
-        error_log("SQL Detalle 1: " . $sqlDetalle1);
-        $executeDetalle1 = $db->Execute($sqlDetalle1);
-        if ($executeDetalle1 && $executeDetalle1->RecordCount() > 0) {
-            $cantidad = $executeDetalle1->fields['cantidad'];
-            if ($empacada == 0) {
-                $faltante = $cantidad;
-            } elseif ($empacada > 0 && $empacada < $cantidad) {
-                $faltante = $cantidad - $empacada;
-            } else {
-                $faltante = "";
+        if ($id) {
+            $sqlDetalle1 = "SELECT id, idpedido, cantidad, faltante, observacionproducto FROM detallepedidosfacturas WHERE id=" . $id;
+            error_log("SQL Detalle 1: " . $sqlDetalle1);
+            $executeDetalle1 = $db->Execute($sqlDetalle1);
+            if ($executeDetalle1 && $executeDetalle1->RecordCount() > 0) {
+                $cantidad = $executeDetalle1->fields['cantidad'];
+                if ($empacada == 0) {
+                    $faltante = $cantidad;
+                } elseif ($empacada > 0 && $empacada < $cantidad) {
+                    $faltante = $cantidad - $empacada;
+                } else {
+                    $faltante = "";
+                }
+                $registro = array(
+                    'faltante' => $faltante,
+                    'observacionproducto' => $observacion,
+                );
+                $sqlDetalle2 = $db->GetUpdateSQL($executeDetalle1, $registro);
+                error_log("SQL Detalle 2: " . $sqlDetalle2);
+                $sqlPedido = "SELECT id, estado FROM pedidos WHERE id=" . $idpedido;
+                error_log("SQL Pedido: " . $sqlPedido);
+                $executePedido = $db->Execute($sqlPedido);
+                if ($executePedido && $executePedido->RecordCount() > 0) {
+                    $reg = array(
+                        'estado' => 1
+                    );
+                    $sqlPedido2 = $db->GetUpdateSQL($executePedido, $reg);
+                }
+                if ($sqlDetalle2) {
+                    $db->StartTrans();
+                    $db->Execute($sqlDetalle2);
+                    $db->Execute($sqlPedido2);
+                    $db->CompleteTrans();
+                    if ($db->ErrorMsg()) {
+                        error_log("Error al guardar el detalle: " . $db->ErrorMsg());
+                        $error .= "Error al guardar el detalle: " . $db->ErrorMsg() . "\n";
+                    } else {
+                        $error .= "";
+                    }
+                }
             }
-            $registro = array(
+        } elseif ($idproducto) {
+            $cantidad = $empacada;
+            $faltante = ($empacada == 0) ? $cantidad : (($empacada > 0 && isset($cantidad) && $empacada < $cantidad) ? $cantidad - $empacada : "");
+            $registroInsert = array(
+                'idpedido' => $idpedido,
+                'idproducto' => $idproducto,
+                'cantidad' => $cantidad,
                 'faltante' => $faltante,
                 'observacionproducto' => $observacion,
             );
-            $sqlDetalle2 = $db->GetUpdateSQL($executeDetalle1, $registro);
-            error_log("SQL Detalle 2: " . $sqlDetalle2);
-            $sqlPedido = "SELECT id, estado FROM pedidos WHERE id=" . $idpedido;
-            error_log("SQL Pedido: " . $sqlPedido);
-            $executePedido = $db->Execute($sqlPedido);
-            if ($executePedido && $executePedido->RecordCount() > 0) {
-                $reg = array(
-                    'estado' => 1
-                );
-                $sqlPedido2 = $db->GetUpdateSQL($executePedido, $reg);
-            }
-            if ($sqlDetalle2) {
+            // Dummy para GetInsertSQL
+            $sqlInsertDummy = "SELECT idpedido, idproducto, cantidad, faltante, observacionproducto FROM detallepedidosfacturas WHERE 1=0";
+            $dummy = $db->Execute($sqlInsertDummy);
+            $sqlInsert = $db->GetInsertSQL($dummy, $registroInsert);
+            if ($sqlInsert) {
                 $db->StartTrans();
-                $db->Execute($sqlDetalle2);
-                $db->Execute($sqlPedido2);
+                $db->Execute($sqlInsert);
                 $db->CompleteTrans();
                 if ($db->ErrorMsg()) {
-                    error_log("Error al guardar el detalle: " . $db->ErrorMsg());
-                    $error .= "Error al guardar el detalle: " . $db->ErrorMsg() . "\n";
-                } else {
-                    $error .= "";
+                    $error .= "Error al insertar el detalle: " . $db->ErrorMsg() . "\n";
                 }
             }
-        }
+        }        
     }
     if ($error) {
         $mensaje = "Se encontraron errores al guardar la prefactura: " . $error;
