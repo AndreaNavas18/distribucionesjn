@@ -136,18 +136,20 @@ async function cargarPreFactura(idPedido) {
     data.detalle.forEach((detallepedido) => {
         let fila = `
         <tr data-id="${detallepedido.id}">
-            <td id='cantidadBD'>${detallepedido.cantidad}</td>
+            <td id='cantidadBD' class='cantidadBD'>${detallepedido.cantidad}</td>
             <td>${detallepedido.nombre}</td>
             <td>${formatearMoneda(detallepedido.precioventa)}</td>
             <td>${formatearMoneda(detallepedido.cantidad * detallepedido.precioventa)}</td>
             <td>${formatearMoneda(detallepedido.preciosugerido)}</td>
             <td>${formatearMoneda(detallepedido.cantidad * detallepedido.preciosugerido)}</td>
-            <td><input type='text-area' class='form-control' id='observacionproducto' name='observacionproducto' value='${detallepedido.observacionproducto || detallepedido.observacionproducto != null ? detallepedido.observacionproducto : ""}'></td>
+            <td><textarea class='form-control' name='observacionproducto'>
+            ${detallepedido.observacionproducto || detallepedido.observacionproducto != null ? detallepedido.observacionproducto : ""}
+            </textarea></td>
             <td class="btn-group">
                 <button class="btn btn-danger btnNoLlego" data-id=${detallepedido.id}>No llegó</button>
                 <button class="btn btn-primary btnOK" data-id=${detallepedido.id}>Completo</button>
             </td>
-            <td><input type='number' class='form-control' id='cantempacar' name='cantempacar' value='${(detallepedido.faltante) ? detallepedido.cantidad-detallepedido.faltante : ""}'></td>
+            <td><input type='number' class='form-control' name='cantempacar' value='${(detallepedido.faltante) ? detallepedido.cantidad-detallepedido.faltante : ""}'></td>
         </tr>
         `;
         tbody.innerHTML += fila;
@@ -166,7 +168,7 @@ function changesPrefactura(idPedido) {
             console.log("CLICK No llegó");
             const fila = this.closest("tr");
             fila.classList.toggle("fila-no-llego");
-            const cantidadInput = fila.querySelector("#cantempacar");
+            const cantidadInput = fila.querySelector("input[name='cantempacar']");
             if (fila.classList.contains("fila-no-llego")) {
                 cantidadInput.value = 0;
                 fila.classList.remove("fila-ok");
@@ -179,9 +181,9 @@ function changesPrefactura(idPedido) {
             console.log("CLICK OK");
             const fila = this.closest("tr");
             fila.classList.toggle("fila-ok");
-            const cantidadInput = fila.querySelector("#cantempacar");
+            const cantidadInput = fila.querySelector("input[name='cantempacar']");
             if (fila.classList.contains("fila-ok")) {
-                cantidadInput.value = fila.querySelector("#cantidadBD").textContent;
+                cantidadInput.value = fila.querySelector(".cantidadBD").textContent;
                 fila.classList.remove("fila-no-llego");
             }
         });
@@ -190,8 +192,8 @@ function changesPrefactura(idPedido) {
     //Si la cantidad - faltante es 0, se pone en verde
     const filas = document.querySelectorAll("#tablaPreFactura tbody tr");
     filas.forEach(fila => {
-        const cantidad = parseInt(fila.querySelector("#cantidadBD").textContent);
-        const faltante = parseInt(fila.querySelector("#cantempacar").value);
+        const cantidad = parseInt(fila.querySelector(".cantidadBD").textContent);
+        const faltante = parseInt(fila.querySelector("input[name='cantempacar']").value);
         if (cantidad - faltante === 0) {
             fila.classList.add("fila-ok");
         } else {
@@ -212,8 +214,8 @@ function changesPrefactura(idPedido) {
         const filas = tbody.querySelectorAll("tr");
         const cambios = Array.from(filas).map(fila => {
             const iddetalle = fila.getAttribute("data-id");
-            const cantidadempacada = fila.querySelector("#cantempacar").value;
-            const observacion = fila.querySelector("#observacionproducto").value;
+            const cantidadempacada = fila.querySelector("input[name='cantempacar']").value;
+            const observacion = fila.querySelector("textarea[name='observacionproducto']").value;
             const idproducto = fila.getAttribute("data-idproducto");
             return { iddetalle, cantidadempacada, observacion, idproducto };
         });
@@ -254,8 +256,6 @@ async function agregarProducto() {
     const inputCantidad = document.getElementById("cantidad");
     const tablaPreFacturaBody = document.querySelector("#tablaPreFactura tbody");
     const tdIdProducto = document.getElementById("codigoProd");
-    const totalPedidoInput = document.getElementById("totalPedido");
-    const divPrecios = document.getElementById("preciosPosibles");
     tdIdProducto.style.display = "none";
 
     if (inputCantidad && btnAgregar) {
@@ -267,7 +267,7 @@ async function agregarProducto() {
         });
     }
 
-    if (!btnAgregar || !btnCantidad || !selectProductos || !inputCantidad || !tablaPreFacturaBody || !totalPedidoInput) {
+    if (!btnAgregar || !btnCantidad || !selectProductos || !inputCantidad || !tablaPreFacturaBody) {
         console.error("Uno o más elementos no existen en el DOM");
         return;
     }
@@ -339,58 +339,37 @@ async function agregarProducto() {
         const fila = document.createElement("tr");
         fila.setAttribute("data-id", idProducto);
         fila.innerHTML = `
-            <td><input type='number' min='1' step='1' class='form-control cantidadproducto' name='cantidad' value='${cantidad}'></td>
+            <td id='cantidadBD' class='cantidadBD'>${cantidad}</td>
             <td>${nombreProducto}</td>
             <td>${formatearMoneda(precioProducto)}</td>
             <td>${formatearMoneda(subTotal)}</td>
             <td>${formatearMoneda(precioFinal)}</td>
             <td>${formatearMoneda(subSugerido)}</td>
             <td><textarea class='form-control' name='observacionproducto'></textarea></td>
-            <td><button class="btn btn-danger btnEliminar">Eliminar</button></td>
-            <td>
-             <div class="form-check">
-                <input 
-                    class="form-check-input no-orden" 
-                    type="checkbox" 
-                    value="${idProducto}" 
-                    id="noorden-${idProducto}"
-                    title="Marcar si NO se debe incluir este producto en la orden"
-                >
-                <label class="form-check-label small" for="noorden-${idProducto}">
-                    No incluir
-                </label>
-            </div>
+            <td class="btn-group">
+            <button type="button" class="btn btn-danger btnNoLlego">No llegó</button>
+            <button type="button" class="btn btn-primary btnOK">Completo</button>
             </td>
-            
-            
+            <td><input type='number' class='form-control' name='cantempacar' min='0' max='${cantidad}''></td>
         `;
 
-        fila.querySelector(".btnEliminar").addEventListener("click", function () {
-            fila.remove();
-            actualizarTotal(totalPedidoInput);
+        fila.querySelector(".btnNoLlego").addEventListener("click", function () {
+            const input = fila.querySelector("input[name='cantempacar']");
+            input.value = 0;
+        });
+
+        fila.querySelector(".btnOK").addEventListener("click", function () {
+            const input = fila.querySelector("input[name='cantempacar']");
+            input.value = cantidad;
         });
 
         tablaPreFacturaBody.appendChild(fila);
         inputCantidad.value = "";
         $(selectProductos).val(null).trigger("change");
-        divPrecios.innerHTML = "";
-        divPrecios.style.display = "none";
-
-        actualizarTotal(totalPedidoInput);
     });
 
     btnCantidad.addEventListener("click", function () {
         inputCantidad.value = 12;
     });
 
-}
-
-function actualizarTotal(totalPedidoInput) {
-    let total = 0;
-    document.querySelectorAll("#tablaPreFactura tbody tr").forEach(fila => {
-        const textoSubtotal = fila.children[3].textContent;
-        const subTotal = parseFloat(textoSubtotal.replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.'));
-        total += subTotal;
-    });
-    totalPedidoInput.value = formatearMoneda(total);
 }

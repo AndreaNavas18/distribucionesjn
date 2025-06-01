@@ -80,6 +80,8 @@ async function cargarDatosPedido(idPedido) {
     console.log(data);
 
     await obtenerClientes();
+    console.log("2data");
+
 
     selectClientes.value = data.pedido.idcliente;
     document.getElementById("totalPedido").value = formatearMoneda(data.pedido.total);
@@ -139,8 +141,10 @@ function editarPedido() {
 }
 
 async function obtenerClientes() {
+    console.log("Obteniendo clientes");
     const data = await pet("controladores/clientes.php", { funcion: "obtenerclientes" });
-
+    console.log("Clientes obtenidos:");
+    
     if (data.error) {
         console.error("Error:", data.error);
         return;
