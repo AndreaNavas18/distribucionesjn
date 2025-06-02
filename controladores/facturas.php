@@ -46,12 +46,22 @@ function guardarPrefactura ($idpedido, $cambios)
     error_log("cambios " . print_r($cambios, true));
     $mensaje = "";
     $error = "";
+    $totalPedido = 0;
     //Toca recorrer cambios
     foreach($cambios as $detalle) {
         $id = $detalle['iddetalle'];
         $empacada = $detalle['cantidadempacada'];
         $observacion = $detalle['observacion'];
         $idproducto = isset($detalle['idproducto']) ? $detalle['idproducto'] : null;
+        $cantidadDB = $detalle['cantidad'];
+        $precio = $detalle['precio'];
+
+        error_log("cantidadDB : " . $cantidadDB);
+        error_log("precio : " . $precio);
+
+        $precio = preg_replace('/[^\d]/u', '', $precio);
+        $precio = intval($precio);
+        error_log("Precio convertido: " . $precio);
 
         if ($id) {
             $sqlDetalle1 = "SELECT id, idpedido, cantidad, faltante, observacionproducto FROM detallepedidosfacturas WHERE id=" . $id;
@@ -95,25 +105,59 @@ function guardarPrefactura ($idpedido, $cambios)
                 }
             }
         } elseif ($idproducto) {
-            $cantidad = $empacada;
-            $faltante = ($empacada == 0) ? $cantidad : (($empacada > 0 && isset($cantidad) && $empacada < $cantidad) ? $cantidad - $empacada : "");
+            error_log("Insertando nuevo detalle para el producto ID: " . $idproducto);
+            $faltante = ($empacada == 0) ? $cantidadDB : (($empacada > 0 && isset($cantidadDB) && $empacada < $cantidadDB) ? $cantidadDB - $empacada : "");
             $registroInsert = array(
                 'idpedido' => $idpedido,
                 'idproducto' => $idproducto,
-                'cantidad' => $cantidad,
+                'cantidad' => $cantidadDB,
                 'faltante' => $faltante,
                 'observacionproducto' => $observacion,
             );
-            // Dummy para GetInsertSQL
             $sqlInsertDummy = "SELECT idpedido, idproducto, cantidad, faltante, observacionproducto FROM detallepedidosfacturas WHERE 1=0";
             $dummy = $db->Execute($sqlInsertDummy);
+            error_log("SQL Insert Dummy: " . $sqlInsertDummy);
             $sqlInsert = $db->GetInsertSQL($dummy, $registroInsert);
+            error_log("SQL Insert: " . $sqlInsert);
             if ($sqlInsert) {
                 $db->StartTrans();
                 $db->Execute($sqlInsert);
                 $db->CompleteTrans();
                 if ($db->ErrorMsg()) {
                     $error .= "Error al insertar el detalle: " . $db->ErrorMsg() . "\n";
+                }
+            }
+
+            // Actualizar el estado del pedido y hacer el calculo del total de pedido
+            $sqlp = "SELECT id, estado, total FROM pedidos WHERE id=" . $idpedido;
+            $resultsqlp = $db->Execute($sqlp);
+            error_log("SQL Pedido para actualizar: " . $sqlp);
+            if ($resultsqlp && $resultsqlp->RecordCount() > 0) {
+                if ($cantidadDB && $precio) {
+                    $totalPedido = $resultsqlp->fields['total'] + $precio;
+                    error_log("precio total " . $totalPedido);
+                    $regPedido = array(
+                        'estado' => 1,
+                        'total' => $totalPedido
+                    );
+                    $sqlUp = "UPDATE pedidos SET ESTADO=1, TOTAL=". $totalPedido ." WHERE id=" . $idpedido . " RETURNING id";
+                    error_log("SQL Pedido Update: " . $sqlUp);
+                    $rr = $db->Execute($sqlUp);
+                    error_log("Resultado de la actualización del pedido: " . $rr->fields['id']);
+                    error_log($db->ErrorMsg());
+
+
+                    // $sqlPedidoUpdate = $db->GetUpdateSQL($resultsqlp, $regPedido);
+                    // error_log("SQL Pedido Update: " . $sqlPedidoUpdate);
+                    // if ($sqlPedidoUpdate) {
+                    //     error_log("Actualizando pedido con ID: " . $idpedido);
+                    //     $db->StartTrans();
+                    //     $db->Execute($sqlPedidoUpdate);
+                    //     $db->CompleteTrans();
+                    //     if ($db->ErrorMsg()) {
+                    //         $error .= "Error al actualizar el pedido: " . $db->ErrorMsg() . "\n";
+                    //     }
+                    // }
                 }
             }
         }        

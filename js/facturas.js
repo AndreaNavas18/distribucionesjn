@@ -135,11 +135,11 @@ async function cargarPreFactura(idPedido) {
 
     data.detalle.forEach((detallepedido) => {
         let fila = `
-        <tr data-id="${detallepedido.id}">
+        <tr data-id="${detallepedido.id}" >
             <td id='cantidadBD' class='cantidadBD'>${detallepedido.cantidad}</td>
             <td>${detallepedido.nombre}</td>
             <td>${formatearMoneda(detallepedido.precioventa)}</td>
-            <td>${formatearMoneda(detallepedido.cantidad * detallepedido.precioventa)}</td>
+            <td class='subtotal'>${formatearMoneda(detallepedido.cantidad * detallepedido.precioventa)}</td>
             <td>${formatearMoneda(detallepedido.preciosugerido)}</td>
             <td>${formatearMoneda(detallepedido.cantidad * detallepedido.preciosugerido)}</td>
             <td><textarea class='form-control' name='observacionproducto'>
@@ -217,7 +217,9 @@ function changesPrefactura(idPedido) {
             const cantidadempacada = fila.querySelector("input[name='cantempacar']").value;
             const observacion = fila.querySelector("textarea[name='observacionproducto']").value;
             const idproducto = fila.getAttribute("data-idproducto");
-            return { iddetalle, cantidadempacada, observacion, idproducto };
+            const cantidad = fila.querySelector(".cantidadBD").textContent;
+            const precio = fila.querySelector(".subtotal").textContent;
+            return { iddetalle, cantidadempacada, observacion, idproducto, cantidad, precio };
         });
         console.log(cambios);
         const data = await pet("controladores/facturas.php", { funcion: "guardarprefactura", idpedido: idPedido, cambios: cambios });
@@ -337,12 +339,12 @@ async function agregarProducto() {
         const subSugerido = precioFinal * cantidad;
 
         const fila = document.createElement("tr");
-        fila.setAttribute("data-id", idProducto);
+        fila.setAttribute("data-idproducto", idProducto);
         fila.innerHTML = `
             <td id='cantidadBD' class='cantidadBD'>${cantidad}</td>
             <td>${nombreProducto}</td>
             <td>${formatearMoneda(precioProducto)}</td>
-            <td>${formatearMoneda(subTotal)}</td>
+            <td class='subtotal'>${formatearMoneda(subTotal)}</td>
             <td>${formatearMoneda(precioFinal)}</td>
             <td>${formatearMoneda(subSugerido)}</td>
             <td><textarea class='form-control' name='observacionproducto'></textarea></td>
