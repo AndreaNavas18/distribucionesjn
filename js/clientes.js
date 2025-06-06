@@ -43,7 +43,13 @@ function crearClientes(idCliente = null) {
                     timer: 3000,
                     showConfirmButton: false
                 });
-                form.reset();
+                if (idCliente) {
+                    setTimeout(() => {
+                        window.location.href = 'verClientes.html';
+                    }, 2000);
+                } else {
+                    form.reset();
+                }
             } else {
                 Swal.fire({
                     title: "Error!", 
@@ -78,7 +84,7 @@ async function obtenerClientes() {
                     <td>${cliente.telefono ?? ""}</td>
                     <td>${cliente.telefono2 ?? ""}</td>
                     <td>${cliente.ruta ?? ""}</td>
-                    <td><button class="btn btn-primary" id="btnEditarCliente" data-id="${cliente.id}">Editar</button></td>
+                    <td class='text-center'><button class="btn btn-primary" id="btnEditarCliente" data-id="${cliente.id}">Editar</button></td>
                 </tr>
             `).join("");
         } else {

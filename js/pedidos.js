@@ -525,7 +525,7 @@ async function cargarPedidos(filtro = "") {
                     <td>${pedido.cliente}</td>
                     <td>$${new Intl.NumberFormat('es-CO').format(pedido.total)}</td>
                     <td>${pedido.observacion ?? ""}</td>
-                    <td><button class="btn btn-primary" id="btnEditarPedido" data-id="${pedido.id}">Editar</button></td>
+                    <td class='text-center'><button class="btn btn-primary" id="btnEditarPedido" data-id="${pedido.id}">Editar</button></td>
                 </tr>
             `).join("");
         }

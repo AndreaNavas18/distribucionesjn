@@ -1,5 +1,7 @@
 body {
-    background: linear-gradient(to right, #0d7fb8, #45aaf2);
+    /* background: linear-gradient(to right, #0d7fb8, #45aaf2); */
+    background: linear-gradient(to right, #1a37b1, #028278);
+    font-family: 'Arial', sans-serif;
     color: white;
     text-align: center;
     min-height: 100vh;
@@ -106,6 +108,27 @@ body {
 #uploadButtonProducto:hover,
 #uploadButtonCliente:hover {
     background-color: #1e7e34;
+}
+
+.logoInicio {
+    width: 250px;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.search-box {
+    position: relative;
+}
+
+#resultadosBusqueda {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: none;
+    max-height: 250px;
+    overflow-y: auto;
 }
 
 @media (max-width: 768px) {

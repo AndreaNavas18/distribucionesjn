@@ -64,12 +64,14 @@ function crearCliente($params, $id) {
     global $db;
 
     $r = false;
+    error_log("Datos recibidos cliente: " . print_r($params, true));
     $nombre = $params['nombre'] != "" ? strtoupper($params['nombre']) : null;
     $razonsocial = $params['razonsocial'] != "" ? strtoupper($params['razonsocial']) : null;
     $ubicacion = $params['ubicacion'] != "" ? strtoupper($params['ubicacion']) : null;
     $telefono = $params['telefono'] != "" ? $params['telefono'] : null;
     $direccion = $params['direccion'] != "" ? strtoupper($params['direccion']) : null;
     $telefono2 = $params['telefono2'] != "" ? $params['telefono2'] : null;
+    $ruta = $params['ruta'] != "" ? $params['ruta'] : null;
     $idCliente = $id ?? 0;
 
     $sqlC = "SELECT * FROM clientes WHERE id=" . $idCliente;
@@ -80,7 +82,8 @@ function crearCliente($params, $id) {
         'ubicacion' => $ubicacion,
         'telefono' => $telefono,
         'direccion' => $direccion,
-        'telefono2' => $telefono2
+        'telefono2' => $telefono2,
+        'ruta' => $ruta
     );
 
     try {

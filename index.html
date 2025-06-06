@@ -12,14 +12,14 @@
 </head>
 <body id="index">
     <section class="hero">
-        <h1>JN DISTRIBUCIONES</h1>
-        <div class="search-box input-group">
-            <input type="text" class="form-control" placeholder="Buscar cliente o producto">
-            <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+        <img src="./public/images/logo.png" alt="Logo" class="logoInicio">
+        <div class="search-box position-relative">
+            <input type="text" class="form-control" id="txtBusquedaProducto" placeholder="Buscar producto" autocomplete="off">
+            <div id="resultadosBusqueda" class="list-group" style="position:absolute; top:100%; left:0; right:0; z-index:10; display:none;"></div>
         </div>
     </section>
     
-    <section class="import-section">
+    <section class="import-section" style="display: none;">
         <div class="import-card">
             <form id="importFormProducto" enctype="multipart/form-data" class="import-container">
                 <label for="excel_file_producto" class="custom-file-upload" id="label_producto">

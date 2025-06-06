@@ -28,7 +28,7 @@ async function inicialPreFactura () {
             <tr data-id="${pedido.id}">
                 <td>${pedido.fecha}</td>
                 <td>${pedido.cliente}</td>
-                <td><button class="btn btn-primary btnEmpacar" data-id="${pedido.id}">Empacar</button></td>
+                <td class='text-center'><button class="btn btn-primary btnEmpacar" data-id="${pedido.id}">Empacar</button></td>
             </tr>
             `;
         }).join("");

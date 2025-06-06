@@ -1,7 +1,13 @@
 :root {
-    --bg-general: #00486c;
+    --bg-general: #0b668e;
     --bg-claro: #0d7fb8;
     --cl-general: #f0f0f0;
+    --cl-btn: #144ba2;
+    --bg-btn: #fff;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
 }
 
 #tomarPedido {
@@ -15,16 +21,28 @@
     margin: 0 auto;
     width: 95%;
 }
+
+.btn-primary {
+    background-color: var(--cl-btn) !important;
+    color: var(--bg-btn) !important;
+    border: var(--cl-btn) !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--bg-btn) !important;
+    color: var(--cl-btn) !important;
+}
+
 /* Estilos cabecera personalizados */
 .cabecerax {
-    background-color: var(--bg-general);
+    background: linear-gradient(to right, #1a37b1, #028278);
     padding: 10px 15px;
 }
 
 /* Botones de cabecera */
 .cabecerax .btn {
-    background-color: var(--bg-claro);
-    color: var(--cl-general);
+    background-color: var(--bg-btn);
+    color: var(--cl-btn);
     border: none;
     padding: 6px 10px;
     border-radius: 5px;
@@ -36,6 +54,11 @@
 
 .cabecerax .btn i {
     font-size: 20px;
+}
+
+.logoCabecera {
+    width: 300px;
+    height: auto;
 }
 
 /* Menú lateral */

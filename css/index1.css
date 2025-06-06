@@ -5,6 +5,10 @@
     --bg-subgeneral: #acacac;
 }
 
+body {
+    font-family: 'Arial', sans-serif;
+}
+
 #index {
     margin: 0;
 }
