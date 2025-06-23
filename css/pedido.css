@@ -25,12 +25,12 @@ body {
 .btn-primary {
     background-color: var(--cl-btn) !important;
     color: var(--bg-btn) !important;
-    border: var(--cl-btn) !important;
 }
 
 .btn-primary:hover {
     background-color: var(--bg-btn) !important;
     color: var(--cl-btn) !important;
+    border: var(--cl-btn) !important;
 }
 
 /* Estilos cabecera personalizados */

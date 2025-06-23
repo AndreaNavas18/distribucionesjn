@@ -40,6 +40,7 @@ async function verProductos() {
                     <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,25))}</td>
                     <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,15))}</td>
                     <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,10))}</td>
+                    <td>${producto.proveedor}</td>
                     <td><button class="btn btn-primary btnEditarProducto" data-id="${producto.id}"><i class="fa-solid fa-pen-to-square"></i></button></td>
                 </tr>
             `;
@@ -59,6 +60,7 @@ function changeProductos() {
     const cerrarDialog = document.querySelector("#btnCloseDialog");
     const inputCosto = document.getElementById("costo");
     const inputVenta = document.getElementById("precioventa");
+    const selectProveedor = document.getElementById("idproveedor");
     const divPorcentajes = document.getElementById("divPorcentajes");
 
     [inputCosto, inputVenta].forEach(input => {
@@ -66,45 +68,39 @@ function changeProductos() {
         input.addEventListener("blur", () => formatearInput(input));
     });
 
-    document.querySelector("#tablaProductos tbody").addEventListener("click", (e) => {
+    document.querySelector("#tablaProductos tbody").addEventListener("click", async (e) => {
         const btn = e.target.closest(".btnEditarProducto");
         if (!btn) return;
-    
+
         const id = btn.getAttribute("data-id");
         idProductoEditando = id;
-    
-        const fila = btn.closest("tr");
-        const celdas = fila.querySelectorAll("td");
-    
-        document.getElementById("nombre").value = celdas[1].textContent;
-        document.getElementById("precioventa").value = parseFloat(celdas[2].textContent.replace(/[^0-9.]/g, ""));
-        document.getElementById("costo").value = parseFloat(celdas[3].textContent.replace(/[^0-9.]/g, ""));
-    
-        dialog.showModal();
-    });
 
-    botones.forEach(boton => {
-        boton.addEventListener("click", async () => {
-            const id = boton.getAttribute("data-id");
-            idProductoEditando = id;
-            dialog.showModal();
-            const data = await pet("controladores/productos.php", { funcion: "verproducto", idproducto: id });
-            if (data.error) {
-                console.error("Error:", data.error);
-            } else {
-                const productoEscogido = data.producto;
-                const campos = ["id","nombre", "precioventa", "costo"];
-                campos.forEach(campo => {
-                    const input = document.getElementById(campo);
-                    if (input) {
-                        input.value = productoEscogido[campo];
-                        if (campo === "costo") {
-                            input.dispatchEvent(new Event("input"));
-                        }
+        dialog.showModal();
+        const data = await pet("controladores/productos.php", { funcion: "verproducto", idproducto: id });
+        await obtenerProveedores();
+
+        if (data.error) {
+            console.error("Error:", data.error);
+        } else {
+            const productoEscogido = data.producto;
+            const campos = ["id", "nombre", "precioventa", "costo", "idproveedor"];
+            campos.forEach(campo => {
+                const input = document.getElementById(campo);
+                if (input) {
+                    input.value = productoEscogido[campo];
+                    if (campo === "costo") {
+                        input.setAttribute("data-real", productoEscogido[campo]);
                     }
-                });
+                }
+            });
+
+            const select = document.getElementById("idproveedor");
+            if (select) {
+                select.value = productoEscogido.idproveedor;
             }
-        });
+
+            actualizarPorcentajes(parseFloat(productoEscogido.costo));
+        }
     });
 
     cerrarDialog.addEventListener("click", () => {
@@ -112,12 +108,23 @@ function changeProductos() {
     });
     
     btnGuardar.addEventListener("click", async () => {
+        formatearInput(inputCosto);
+        formatearInput(inputVenta);
+        const formEditar = document.getElementById("formEditarProducto");
+        const nombreProveedor = selectProveedor.options[selectProveedor.selectedIndex].text;
+        
+        const precioVenta = parseFloat(inputVenta.getAttribute("data-real"));
+        const costo = parseFloat(inputCosto.getAttribute("data-real"));
+
         const producto = {
             id: idProductoEditando,
             nombre: document.getElementById("nombre").value,
-            precioventa: parseFloat(inputVenta.getAttribute("data-real")) || 0,
-            costo: parseFloat(inputCosto.getAttribute("data-real")) || 0
+            precioventa: precioVenta,
+            costo: costo,
+            idproveedor: selectProveedor.value
         };
+
+        console.log("Producto a editar:", producto);
     
         const data = await pet("controladores/productos.php", {
             funcion: "editarproducto",
@@ -131,16 +138,16 @@ function changeProductos() {
     
         const fila = $(`#tablaProductos tbody tr[data-id="${producto.id}"]`);
         if (fila.length) {
-            const costo = producto.costo;
             tablaProductosDT.row(fila).data([
                 producto.id,
                 producto.nombre,
-                formatearMoneda(producto.precioventa),
+                formatearMoneda(precioVenta),
                 formatearMoneda(costo),
-                formatearMoneda(producto.precioventa - costo),
+                formatearMoneda(precioVenta - costo),
                 formatearMoneda(costo + calcularPorcentaje(costo, 25)),
                 formatearMoneda(costo + calcularPorcentaje(costo, 15)),
                 formatearMoneda(costo + calcularPorcentaje(costo, 10)),
+                nombreProveedor,
                 `<button class="btn btn-primary btnEditarProducto" data-id="${producto.id}">
                     <i class="fa-solid fa-pen-to-square"></i>
                 </button>`
@@ -154,29 +161,59 @@ function changeProductos() {
             timer: 2000,
             showConfirmButton: false
         });
-    
+        console.log("Formulario antes de formatear:", document.getElementById("formEditarProducto").innerHTML);
+        formEditar.reset();
+        document.getElementById("costo").removeAttribute("data-real");
+        document.getElementById("precioventa").removeAttribute("data-real");
+        console.log("Formulario después de formatear:", document.getElementById("formEditarProducto").innerHTML);
         dialog.close();
     });
 
     inputCosto.addEventListener("input", function () {
         const costo = parseFloat(inputCosto.value.replace(/[^0-9.]/g, '').replace(",", "."));
+        actualizarPorcentajes(costo);
+    });
+}
 
-        if (isNaN(costo) || costo <= 0) {
-            divPorcentajes.innerHTML = "";
+function actualizarPorcentajes(costo) {
+    const div = document.getElementById("divPorcentajes");
+    console.log("Actualizar porcentajes con costo:", costo);
+    if (isNaN(costo) || costo <= 0) {
+        div.innerHTML = "";
+        return;
+    }
+
+    const porcentajes = [10, 15, 25];
+    let html = "<label class='form-label'>Precios sugeridos:</label><ul class='list-group mt-2'>";
+
+    porcentajes.forEach(porcentaje => {
+        const precio = costo * (1 + porcentaje / 100);
+        html += `<li class='list-group-item'>${porcentaje}%: <strong>${formatearCOP.format(precio)}</strong></li>`;
+    });
+
+    html += "</ul>";
+    div.innerHTML = html;
+}
+
+async function obtenerProveedores() {
+    const select = document.getElementById("idproveedor");
+
+    if (select) {
+        const data = await pet("controladores/productos.php", { funcion: "obtenerproveedores" });
+
+        if (data.error) {
+            console.error("Error:", data.error);
+            select.innerHTML = "<option class='text-danger'>Error al cargar proveedores</option>";
             return;
         }
 
-        const porcentajes = [10, 15, 25];
-        let html = "<label class='form-label'>Precios sugeridos:</label><ul class='list-group mt-2'>";
+        if (Array.isArray(data.proveedores) && data.proveedores.length > 0) {
+            select.innerHTML = data.proveedores.map(proveedor => `
+                <option value="${proveedor.id}">${proveedor.proveedor}</option>
+            `).join('');
+        }
+    }
 
-        porcentajes.forEach(porcentaje => {
-            const precio = costo * (1 + porcentaje / 100);
-            html += `<li class='list-group-item'>${porcentaje}%: <strong>${formatearCOP.format(precio)}</strong></li>`;
-        });
-
-        html += "</ul>";
-        divPorcentajes.innerHTML = html;
-    });
 }
 
 function limpiarNumero(valor) {
@@ -184,15 +221,15 @@ function limpiarNumero(valor) {
 }
 
 function formatearInput(input) {
-        const valor = limpiarNumero(input.value);
-        if (!isNaN(valor)) {
-            input.setAttribute("data-real", valor);
-            input.value = formatearCOP.format(valor);
-        } else {
-            input.removeAttribute("data-real");
-            input.value = "";
-        }
+    const valor = limpiarNumero(input.value);
+    if (!isNaN(valor)) {
+        input.setAttribute("data-real", valor);
+        input.value = formatearCOP.format(valor);
+    } else {
+        input.removeAttribute("data-real");
+        input.value = "";
     }
+}
 
 function calcularPorcentaje(valor,porcentaje) {
     return (valor * porcentaje) / 100;

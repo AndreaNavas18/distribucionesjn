@@ -74,7 +74,8 @@ function obtenerProductos() {
     global $db;
 
     try {
-        $sql = "SELECT id, nombre, precioventa, costo FROM productos";
+        $sql = "SELECT p.id, p.nombre, p.precioventa, p.costo, pv.proveedor FROM productos as p ".
+        "LEFT JOIN proveedores as pv ON p.idproveedor = pv.id";
         $productos = $db->GetArray($sql);
 
         if (count($productos) > 0) {
@@ -124,8 +125,12 @@ function obtenerProveedores() {
 
 function verProducto($idProducto) {
     global $db;
-    $sqlProducto = "SELECT id, nombre, precioventa, costo FROM productos WHERE id=" . $idProducto;
+    $sqlProducto = "SELECT p.id, p.nombre, p.precioventa, p.costo, pv.id as idproveedor FROM productos as p ".
+    "LEFT JOIN proveedores as pv ON p.idproveedor = pv.id ".
+    "WHERE p.id=" . $idProducto;
     $result = $db->GetArray($sqlProducto);
+    error_log("verProducto: " . $sqlProducto);
+    error_log("result 00 " . print_r($result, true));
     if (count($result) > 0) {
         error_log("result 00 " . print_r($result[0], true));
         return $result[0];
@@ -138,13 +143,16 @@ function editarProducto($aForm) {
     global $db;
 
     $valores = json_decode($aForm, true);
-    $query = "SELECT id, nombre, precioventa, costo FROM productos WHERE id=" . $valores['id'];
+    $query = "SELECT id, nombre, precioventa, costo, idproveedor FROM productos ".
+    "WHERE id=" . $valores['id'];
     $result = $db->Execute($query);
+    error_log("editarProducto: " . $query);
     $registro = array(
         'id' => $valores['id'],
         'nombre' => $db->addQ($valores['nombre']),
         'precioventa' => $valores['precioventa'],
-        'costo' => $valores['costo']
+        'costo' => $valores['costo'],
+        'idproveedor' => $valores['idproveedor']
     );
     if ($result && $result->RecordCount() > 0) {
         $sqlUpdate = $db->GetUpdateSQL($result, $registro);
@@ -153,6 +161,9 @@ function editarProducto($aForm) {
     if (isset($sqlUpdate) && $sqlUpdate !== false) {
         error_log("sqlUpdate: " . $sqlUpdate);
         $executeUpdate = $db->Execute($sqlUpdate);
+        error_log("executeUpdate: " . print_r($executeUpdate, true));
+        error_log("Error al ejecutar la actualización: " . $db->ErrorMsg());
+   
         if ($executeUpdate) {
             $db->CompleteTrans();
             return ["mensaje" => "Producto editado con éxito"];

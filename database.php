@@ -3,9 +3,9 @@ require_once 'vendor/adodb/adodb-php/adodb.inc.php';
 
 $dbType = 'pgsql';
 $host = '127.0.0.1';
-//base de datos original
+//base de datos OLD
 // $database = 'distribucionesjn';
-//base de datos de pruebas
+//base de datos ACTUALIZADA
 $database = 'pruebasdistribucionesjn';
 $username = 'postgres';
 $password = 'postgres';

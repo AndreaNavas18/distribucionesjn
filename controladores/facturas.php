@@ -58,13 +58,16 @@ function guardarPrefactura ($idpedido, $cambios)
 
         error_log("cantidadDB : " . $cantidadDB);
         error_log("precio : " . $precio);
+        error_log("cantidad empacada: " . $empacada);
+        error_log("observacion: " . $observacion);
+        error_log("id producto: " . $idproducto);
 
         $precio = preg_replace('/[^\d]/u', '', $precio);
         $precio = intval($precio);
         error_log("Precio convertido: " . $precio);
 
         if ($id) {
-            $sqlDetalle1 = "SELECT id, idpedido, cantidad, faltante, observacionproducto FROM detallepedidosfacturas WHERE id=" . $id;
+            $sqlDetalle1 = "SELECT * FROM detallepedidosfacturas WHERE id=" . $id;
             error_log("SQL Detalle 1: " . $sqlDetalle1);
             $executeDetalle1 = $db->Execute($sqlDetalle1);
             if ($executeDetalle1 && $executeDetalle1->RecordCount() > 0) {
@@ -78,11 +81,11 @@ function guardarPrefactura ($idpedido, $cambios)
                 }
                 $registro = array(
                     'faltante' => $faltante,
-                    'observacionproducto' => $observacion,
+                    'observacionproducto' => trim($observacion) ? trim($observacion) : null,
                 );
                 $sqlDetalle2 = $db->GetUpdateSQL($executeDetalle1, $registro);
                 error_log("SQL Detalle 2: " . $sqlDetalle2);
-                $sqlPedido = "SELECT id, estado FROM pedidos WHERE id=" . $idpedido;
+                $sqlPedido = "SELECT * FROM pedidos WHERE id=" . $idpedido;
                 error_log("SQL Pedido: " . $sqlPedido);
                 $executePedido = $db->Execute($sqlPedido);
                 if ($executePedido && $executePedido->RecordCount() > 0) {

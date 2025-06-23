@@ -514,7 +514,6 @@ async function cargarPedidos(filtro = "") {
             $('#tablaHistorialP').DataTable().clear().destroy();
         }
 
-
         const pedidos = document.getElementById("pedidos");
 
         if (pedidos) {

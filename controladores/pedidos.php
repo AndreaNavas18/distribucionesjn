@@ -308,7 +308,7 @@ function verPedido($idPedido) {
     $sqlDetalle = "SELECT dp.id, dp.idproducto, dp.cantidad, dp.observacionproducto, dp.estado, ".
     "dp.preciosugerido, pr.nombre, pr.precioventa, dp.faltante, dp.noorden FROM detallepedidosfacturas dp ".
     "LEFT JOIN productos pr ON dp.idproducto = pr.id ".
-    "WHERE dp.idpedido =" . $idPedido;
+    "WHERE dp.idpedido =" . $idPedido . " ORDER BY dp.idproducto";
     $detallepedido = $db->GetArray($sqlDetalle);
 
     error_log("SQL Pedido: " . $sqlPedido);
