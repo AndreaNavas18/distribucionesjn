@@ -1,26 +1,28 @@
-import { SERVER, pet, initSelect2, formatearMoneda, initDataTable  } from "./base.js";
+import { SERVER, pet, initSelect2, formatearMoneda, initDataTable, protegerVista  } from "./base.js";
 
-document.addEventListener("DOMContentLoaded", function() {
-    const vista = document.body.id;
-    if (vista === "tomarPedido") {
-        const urlParams = new URLSearchParams(window.location.search);
-        const idPedido = urlParams.get('id');
-        inicialTomaPedidos(idPedido);
-        listarProductos();
-        agregarProducto();
-        if (idPedido) {
-            cargarDatosPedido(idPedido);
-        } else {
-            obtenerClientes();
+document.addEventListener("DOMContentLoaded", async function() {
+    protegerVista(() => {
+        const vista = document.body.id;
+        if (vista === "tomarPedido") {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idPedido = urlParams.get('id');
+            inicialTomaPedidos(idPedido);
+            listarProductos();
+            agregarProducto();
+            if (idPedido) {
+                cargarDatosPedido(idPedido);
+            } else {
+                obtenerClientes();
+            }
+            guardarPedido(idPedido);
+        } else if (vista === "historialPedidos") {
+            cargarPedidos();
+        } else if (vista === "ordenCompra") {
+            initCalendars();
+            listarProveedores();
+            verOrdenCompra();
         }
-        guardarPedido(idPedido);
-    } else if (vista === "historialPedidos") {
-        cargarPedidos();
-    } else if (vista === "ordenCompra") {
-        initCalendars();
-        listarProveedores();
-        verOrdenCompra();
-    }
+    });
 });
 
 function listarProductos() {

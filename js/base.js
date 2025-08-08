@@ -5,13 +5,26 @@ export async function pet(url, data) {
     try {
         const response = await fetch(SERVER + url, {
             method: "POST",
-            body: JSON.stringify(data),
             headers: {
                 "Content-Type": "application/json"
-            }
+            },
+            body: JSON.stringify(data)
         });
 
-        return await response.json();
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                window.location.href = '/login.html';
+            }
+            throw new Error("Error en la solicitud");
+        }
+
+        const res = await response.json();
+
+        if (res.sesion === false) {
+            window.location.href = '/login.html';
+        }
+
+        return res;
     } catch (error) {
         console.error("Error en la solicitud:", error);
         return { error: "Error en la solicitud" };
@@ -135,5 +148,22 @@ export function cargarCabecera() {
         })
         .catch(error => console.error("Error al cargar la cabecera:", error));
     });
+}
+
+export async function protegerVista(callback) {
+    const res = await pet("autenticacion/verificarSesion.php", {});
+    verificarSesion(res);
+    callback();
+}
+
+export function verificarSesion(res) {
+    if (res.sesion === false) {
+        window.location.href = '/login.html';
+    }
+}
+
+export function logout() {
+    fetch("/logout.php", { method: "POST" })
+        .then(() => window.location.href = "/login.html");
 }
 

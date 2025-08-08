@@ -1,21 +1,23 @@
-import { SERVER, pet, initSelect2, formatearMoneda, initDataTable  } from "./base.js";
+import { SERVER, pet, initSelect2, formatearMoneda, initDataTable, protegerVista  } from "./base.js";
 let tablaPedidosActivos;
 let idProductoEditando = null;
 
-document.addEventListener("DOMContentLoaded", function() {
-    const vista = document.body.id;
-    if (vista === "prefactura") {
-        const urlParams = new URLSearchParams(window.location.search);
-        console.log("utlParams" + urlParams);
-        const idPedido = urlParams.get('id');
-        console.log("idPedido" + idPedido);
-        agregarProducto();
-        listarProductos();
-        obtenerClientes();
-        cargarPreFactura(idPedido);
-    } else if (vista === "pedidosActivos") {
-        inicialPreFactura();
-    }
+document.addEventListener("DOMContentLoaded", async function() {
+    protegerVista(() => {
+        const vista = document.body.id;
+        if (vista === "prefactura") {
+            const urlParams = new URLSearchParams(window.location.search);
+            console.log("utlParams" + urlParams);
+            const idPedido = urlParams.get('id');
+            console.log("idPedido" + idPedido);
+            agregarProducto();
+            listarProductos();
+            obtenerClientes();
+            cargarPreFactura(idPedido);
+        } else if (vista === "pedidosActivos") {
+            inicialPreFactura();
+        }
+    })
 });
 
 async function inicialPreFactura () {

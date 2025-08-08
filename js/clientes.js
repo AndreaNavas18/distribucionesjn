@@ -1,17 +1,19 @@
-import { pet, initDataTable } from "./base.js";
+import { pet, initDataTable, protegerVista } from "./base.js";
 
-document.addEventListener("DOMContentLoaded", function() {
-    const vista = document.body.id;
-    if (vista === "crearCliente") {
-        const urlParams = new URLSearchParams(window.location.search);
-        const idCliente = urlParams.get('id');
-        crearClientes(idCliente);
-        if (idCliente) {
-            cargarDatosCliente(idCliente);
+document.addEventListener("DOMContentLoaded", async function() {
+    protegerVista(() => {
+        const vista = document.body.id;
+        if (vista === "crearCliente") {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idCliente = urlParams.get('id');
+            crearClientes(idCliente);
+            if (idCliente) {
+                cargarDatosCliente(idCliente);
+            }
+        } else if (vista === "verClientes") {
+            obtenerClientes();
         }
-    } else if (vista === "verClientes") {
-        obtenerClientes();
-    }
+    });
 });
 
 function crearClientes(idCliente = null) {
