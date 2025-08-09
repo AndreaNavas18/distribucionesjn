@@ -1,6 +1,6 @@
-import { pet, protegerVista } from "./base.js";
+import { pet, protegerVista, formatearMoneda } from "./base.js";
 
-document.addEventListener("DOMContentLoaded", async function() {
+document.addEventListener("DOMContentLoaded", function() {
     protegerVista(() => {
         const vista = document.body.id;
         if (vista === "home") {

@@ -38,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             case 'editarproducto':
                 if (isset($data['producto'])) {
-                    error_log("editarproducto: " . print_r($data['producto'], true));
                     $aForm = $data['producto'];
                     $response['producto'] = editarProducto($aForm);
                 }
@@ -129,10 +128,7 @@ function verProducto($idProducto) {
     "LEFT JOIN proveedores as pv ON p.idproveedor = pv.id ".
     "WHERE p.id=" . $idProducto;
     $result = $db->GetArray($sqlProducto);
-    error_log("verProducto: " . $sqlProducto);
-    error_log("result 00 " . print_r($result, true));
     if (count($result) > 0) {
-        error_log("result 00 " . print_r($result[0], true));
         return $result[0];
     } else {
         return ["mensaje" => "No se encontró el producto"];
@@ -146,7 +142,6 @@ function editarProducto($aForm) {
     $query = "SELECT id, nombre, precioventa, costo, idproveedor FROM productos ".
     "WHERE id=" . $valores['id'];
     $result = $db->Execute($query);
-    error_log("editarProducto: " . $query);
     $registro = array(
         'id' => $valores['id'],
         'nombre' => $db->addQ($valores['nombre']),
@@ -159,10 +154,7 @@ function editarProducto($aForm) {
     }
     $db->StartTrans();
     if (isset($sqlUpdate) && $sqlUpdate !== false) {
-        error_log("sqlUpdate: " . $sqlUpdate);
         $executeUpdate = $db->Execute($sqlUpdate);
-        error_log("executeUpdate: " . print_r($executeUpdate, true));
-        error_log("Error al ejecutar la actualización: " . $db->ErrorMsg());
    
         if ($executeUpdate) {
             $db->CompleteTrans();
@@ -192,7 +184,6 @@ function crearProducto($aForm) {
         $sqlInsert = $db->GetInsertSQL($result, $registro);
     }
     if (isset($sqlInsert) && $sqlInsert !== false) {
-        error_log("sqlInsert: " . $sqlInsert);
         $executeInsert = $db->Execute($sqlInsert);
         if ($executeInsert) {
             $db->CompleteTrans();

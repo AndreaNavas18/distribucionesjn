@@ -1,8 +1,8 @@
-import { SERVER, pet, initSelect2, formatearMoneda, initDataTable, protegerVista  } from "./base.js";
+import { SERVER, pet, initSelect2, formatearMoneda, initDataTable, protegerVista } from "./base.js";
 let tablaPedidosActivos;
 let idProductoEditando = null;
 
-document.addEventListener("DOMContentLoaded", async function() {
+document.addEventListener("DOMContentLoaded", function() {
     protegerVista(() => {
         const vista = document.body.id;
         if (vista === "prefactura") {
@@ -51,7 +51,7 @@ function empacarPedido() {
         idProductoEditando = id;
         console.log("ID del pedido:", idProductoEditando);
     
-        window.location.href = `preFactura.html?id=${idProductoEditando}`;
+        window.location.href = `preFactura.php?id=${idProductoEditando}`;
     });
 }
 
@@ -235,9 +235,9 @@ function changesPrefactura(idPedido) {
                 cancelButtonText: "Home"
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = 'pedidosActivos.html';
+                    window.location.href = 'pedidosActivos.php';
                 } else if (result.dismiss === Swal.DismissReason.cancel) {
-                    window.location.href = '../index.html';
+                    window.location.href = '../vistas/home.php';
                 }
             });
         } else {

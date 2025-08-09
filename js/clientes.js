@@ -1,6 +1,6 @@
 import { pet, initDataTable, protegerVista } from "./base.js";
 
-document.addEventListener("DOMContentLoaded", async function() {
+document.addEventListener("DOMContentLoaded",  function() {
     protegerVista(() => {
         const vista = document.body.id;
         if (vista === "crearCliente") {
@@ -47,7 +47,7 @@ function crearClientes(idCliente = null) {
                 });
                 if (idCliente) {
                     setTimeout(() => {
-                        window.location.href = 'verClientes.html';
+                        window.location.href = 'verClientes.php';
                     }, 2000);
                 } else {
                     form.reset();
@@ -104,7 +104,7 @@ function editarCliente() {
     btnEditarCliente.forEach(boton => {
         boton.addEventListener("click", function () {
             const idCliente = this.dataset.id;
-            window.location.href = `crearCliente.html?id=${idCliente}`;
+            window.location.href = `crearCliente.php?id=${idCliente}`;
         });
     });
 }

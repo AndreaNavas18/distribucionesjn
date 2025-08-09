@@ -42,8 +42,6 @@ echo json_encode($response);
 function guardarPrefactura ($idpedido, $cambios)
 {
     global $db;
-    error_log("ID Pedido: " . $idpedido);
-    error_log("cambios " . print_r($cambios, true));
     $mensaje = "";
     $error = "";
     $totalPedido = 0;
@@ -55,20 +53,11 @@ function guardarPrefactura ($idpedido, $cambios)
         $idproducto = isset($detalle['idproducto']) ? $detalle['idproducto'] : null;
         $cantidadDB = $detalle['cantidad'];
         $precio = $detalle['precio'];
-
-        error_log("cantidadDB : " . $cantidadDB);
-        error_log("precio : " . $precio);
-        error_log("cantidad empacada: " . $empacada);
-        error_log("observacion: " . $observacion);
-        error_log("id producto: " . $idproducto);
-
         $precio = preg_replace('/[^\d]/u', '', $precio);
         $precio = intval($precio);
-        error_log("Precio convertido: " . $precio);
 
         if ($id) {
             $sqlDetalle1 = "SELECT * FROM detallepedidosfacturas WHERE id=" . $id;
-            error_log("SQL Detalle 1: " . $sqlDetalle1);
             $executeDetalle1 = $db->Execute($sqlDetalle1);
             if ($executeDetalle1 && $executeDetalle1->RecordCount() > 0) {
                 $cantidad = $executeDetalle1->fields['cantidad'];
@@ -84,9 +73,7 @@ function guardarPrefactura ($idpedido, $cambios)
                     'observacionproducto' => trim($observacion) ? trim($observacion) : null,
                 );
                 $sqlDetalle2 = $db->GetUpdateSQL($executeDetalle1, $registro);
-                error_log("SQL Detalle 2: " . $sqlDetalle2);
                 $sqlPedido = "SELECT * FROM pedidos WHERE id=" . $idpedido;
-                error_log("SQL Pedido: " . $sqlPedido);
                 $executePedido = $db->Execute($sqlPedido);
                 if ($executePedido && $executePedido->RecordCount() > 0) {
                     $reg = array(
@@ -100,7 +87,6 @@ function guardarPrefactura ($idpedido, $cambios)
                     $db->Execute($sqlPedido2);
                     $db->CompleteTrans();
                     if ($db->ErrorMsg()) {
-                        error_log("Error al guardar el detalle: " . $db->ErrorMsg());
                         $error .= "Error al guardar el detalle: " . $db->ErrorMsg() . "\n";
                     } else {
                         $error .= "";
@@ -108,7 +94,6 @@ function guardarPrefactura ($idpedido, $cambios)
                 }
             }
         } elseif ($idproducto) {
-            error_log("Insertando nuevo detalle para el producto ID: " . $idproducto);
             $faltante = ($empacada == 0) ? $cantidadDB : (($empacada > 0 && isset($cantidadDB) && $empacada < $cantidadDB) ? $cantidadDB - $empacada : "");
             $registroInsert = array(
                 'idpedido' => $idpedido,
@@ -119,9 +104,7 @@ function guardarPrefactura ($idpedido, $cambios)
             );
             $sqlInsertDummy = "SELECT idpedido, idproducto, cantidad, faltante, observacionproducto FROM detallepedidosfacturas WHERE 1=0";
             $dummy = $db->Execute($sqlInsertDummy);
-            error_log("SQL Insert Dummy: " . $sqlInsertDummy);
             $sqlInsert = $db->GetInsertSQL($dummy, $registroInsert);
-            error_log("SQL Insert: " . $sqlInsert);
             if ($sqlInsert) {
                 $db->StartTrans();
                 $db->Execute($sqlInsert);
@@ -134,20 +117,15 @@ function guardarPrefactura ($idpedido, $cambios)
             // Actualizar el estado del pedido y hacer el calculo del total de pedido
             $sqlp = "SELECT id, estado, total FROM pedidos WHERE id=" . $idpedido;
             $resultsqlp = $db->Execute($sqlp);
-            error_log("SQL Pedido para actualizar: " . $sqlp);
             if ($resultsqlp && $resultsqlp->RecordCount() > 0) {
                 if ($cantidadDB && $precio) {
                     $totalPedido = $resultsqlp->fields['total'] + $precio;
-                    error_log("precio total " . $totalPedido);
                     $regPedido = array(
                         'estado' => 1,
                         'total' => $totalPedido
                     );
                     $sqlUp = "UPDATE pedidos SET ESTADO=1, TOTAL=". $totalPedido ." WHERE id=" . $idpedido . " RETURNING id";
-                    error_log("SQL Pedido Update: " . $sqlUp);
                     $rr = $db->Execute($sqlUp);
-                    error_log("Resultado de la actualización del pedido: " . $rr->fields['id']);
-                    error_log($db->ErrorMsg());
 
 
                     // $sqlPedidoUpdate = $db->GetUpdateSQL($resultsqlp, $regPedido);
@@ -170,6 +148,5 @@ function guardarPrefactura ($idpedido, $cambios)
     } else {
         $mensaje = "Prefactura guardada con éxito";
     }
-    error_log("Mensaje: " . $mensaje);
     return $mensaje;
 }

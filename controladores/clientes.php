@@ -38,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'vercliente':
                 if (isset($data['id'])) {
                     $cliente = verCliente($data['id']);
-                    error_log("lo que llega " . print_r($cliente, true));
                     if ($cliente) {
                         $response["cliente"] = $cliente;
                     } else {
@@ -64,7 +63,6 @@ function crearCliente($params, $id) {
     global $db;
 
     $r = false;
-    error_log("Datos recibidos cliente: " . print_r($params, true));
     $nombre = $params['nombre'] != "" ? strtoupper($params['nombre']) : null;
     $razonsocial = $params['razonsocial'] != "" ? strtoupper($params['razonsocial']) : null;
     $ubicacion = $params['ubicacion'] != "" ? strtoupper($params['ubicacion']) : null;
@@ -104,8 +102,6 @@ function crearCliente($params, $id) {
     } catch (Exception $e) {
         $db->FailTrans();
         $db->CompleteTrans();
-
-        error_log("Error al crear/editar un cliente: " . $e->getMessage());
         $r = false;
     }
 
@@ -133,6 +129,5 @@ function verCliente($idCliente) {
     global $db;
     $sqlCliente = "SELECT id, nombre, razonsocial, ubicacion, telefono, direccion, telefono2, ruta FROM clientes WHERE id=" . $idCliente;
     $result = $db->GetArray($sqlCliente);
-    error_log(print_r($result[0], true));
     return $result;
 }

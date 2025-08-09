@@ -101,7 +101,6 @@ function obtenerPedidoPorId($idPedido) {
             FROM pedidos p
             LEFT JOIN clientes c ON p.idcliente = c.id
             WHERE p.id = ?";
-    error_log("SQL pedido por ID: " . $sql . " ID: " . $idPedido);
     return $db->GetRow($sql, [$idPedido]);
 }
 
@@ -113,7 +112,6 @@ function obtenerDetallesPedido($idPedido) {
             FROM detallepedidosfacturas dp
             LEFT JOIN productos pr ON dp.idproducto = pr.id
             WHERE dp.idpedido = ? AND (dp.cantidad - COALESCE(dp.faltante, 0)) > 0";
-    error_log("SQL Detalles: " . $sql);
     return $db->GetAll($sql, [$idPedido]);
 }
 ?>

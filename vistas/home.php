@@ -1,18 +1,19 @@
+<?php require_once __DIR__ . '/../autenticacion/proteger.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="./assets/css/all.min.css">
-    <link rel="stylesheet" href="./css/index.css">
+    <link rel="stylesheet" href="../assets/css/all.min.css">
+    <link rel="stylesheet" href="../css/index.css">
 </head>
-<body id="index">
+<body id="home">
     <section class="hero">
-        <img src="./public/images/logo.png" alt="Logo" class="logoInicio">
+        <img src="../public/images/logo.png" alt="Logo" class="logoInicio">
         <div class="search-box position-relative">
             <input type="text" class="form-control" id="txtBusquedaProducto" placeholder="Buscar producto" autocomplete="off">
             <div id="resultadosBusqueda" class="list-group" style="position:absolute; top:100%; left:0; right:0; z-index:10; display:none;"></div>
@@ -45,16 +46,17 @@
     </section>
     
     <section class="buttons-grid">
-        <a href="./vistas/tomarPedido.html" id="tomarPedido">Tomar Pedido</a>
-        <a href="./vistas/crearCliente.html">Crear Cliente</a>
-        <a href="./vistas/verProductos.html">Ver Productos</a>
-        <a href="./vistas/verClientes.html">Ver Clientes</a>
-        <a href="./vistas/historialPedidos.html">Historial Pedidos</a>
-        <a href="./vistas/ordenCompra.html">Orden de Compra</a>
-        <a href="./vistas/crearProducto.html">Crear Producto</a>
-        <a href="./vistas/pedidosActivos.html">Pedidos Activos</a>
+        <a href="./tomarPedido.php" id="tomarPedido">Tomar Pedido</a>
+        <a href="./crearCliente.php">Crear Cliente</a>
+        <a href="./verProductos.php">Ver Productos</a>
+        <a href="./verClientes.php">Ver Clientes</a>
+        <a href="./historialPedidos.php">Historial Pedidos</a>
+        <a href="./ordenCompra.php">Orden de Compra</a>
+        <a href="./crearProducto.php">Crear Producto</a>
+        <a href="./pedidosActivos.php">Pedidos Activos</a>
     </section>
 
-    <script type="module" src="./js/productos.js"></script>
+    <script type="module" src="../js/productos.js"></script>
+    <script type="module" src="../js/home.js"></script>
 </body>
 </html>

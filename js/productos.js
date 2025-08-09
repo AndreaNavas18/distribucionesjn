@@ -1,4 +1,4 @@
-import { SERVER, pet, formatearMoneda, initDataTable, verificarSesion  } from "./base.js";
+import { SERVER, pet, formatearMoneda, initDataTable, protegerVista } from "./base.js";
 
 let idProductoEditando = null;
 let tablaProductosDT;
@@ -8,7 +8,7 @@ let formatearCOP = new Intl.NumberFormat("es-CO", {
     minimumFractionDigits: 0
 });
 
-document.addEventListener("DOMContentLoaded", async function() {
+document.addEventListener("DOMContentLoaded", function() {
      protegerVista(() => {
         const vista = document.body.id;
         if (vista === "verProductos") {

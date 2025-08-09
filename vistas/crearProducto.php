@@ -1,9 +1,10 @@
+<?php require_once __DIR__ . '/../autenticacion/proteger.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Cliente</title>
+    <title>Crear Productos</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
     
@@ -24,59 +25,41 @@
 
     <!-- SweetAlert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 </head>
-<body id="crearCliente" class="bg-light">
+<body id="crearProducto" class="bg-light">
     <div id="cabecera"></div>
 
     <div class="container mt-4">
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card shadow p-4">
-                    <h1 class="text-center mb-4">Crear Cliente</h1>
-                    <form id="formCliente">
+                    <h1 class="text-center mb-4">Crear Producto</h1>
+                    <form id="formCrearProducto">
                         <div class="mb-3">
                             <label for="nombre" class="form-label">Nombre:</label>
                             <input type="text" class="form-control" id="nombre" name="nombre" required>
                         </div>
 
                         <div class="mb-3">
-                            <label for="razonsocial" class="form-label">Razón Social:</label>
-                            <input type="text" class="form-control" id="razonsocial" name="razonsocial">
+                            <label for="costo" class="form-label">Costo:</label>
+                            <input type="text" class="form-control" id="costo" name="costo">
+                        </div>
+                        
+                        <div class="mb-3" id="divPorcentajes"></div>
+
+                        <div class="mb-3">
+                            <label for="precioventa" class="form-label">Precio de Venta:</label>
+                            <input type="text" class="form-control" id="precioventa" name="precioventa">
                         </div>
 
                         <div class="mb-3">
-                            <label for="ubicacion" class="form-label">Ubicación:</label>
-                            <input type="text" class="form-control" id="ubicacion" name="ubicacion">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="direccion" class="form-label">Dirección:</label>
-                            <input type="text" class="form-control" id="direccion" name="direccion">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="telefono" class="form-label">Teléfono:</label>
-                            <input type="number" class="form-control" id="telefono" name="telefono">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="telefono2" class="form-label">Otro Teléfono:</label>
-                            <input type="number" class="form-control" id="telefono2" name="telefono2">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="ruta" class="form-label">Ruta:</label>
-                            <select class="form-select" id="ruta" name="ruta">
-                                <option value="">Elegir una ruta</option>
-                                <option value="1">Ruta 1</option>
-                                <option value="2">Ruta 2</option>
-                                <option value="3">Ruta 3</option>
+                            <label for="idproveedor" class="form-label">Proveedor</label>
+                            <select class="form-select" id="idproveedor" name="idproveedor">
                             </select>
                         </div>
 
                         <div class="text-center">
-                            <button id="btnGrabarCliente" type="submit" class="btn btn-success w-100">
+                            <button id="btnGrabarProducto" type="submit" class="btn btn-success w-100">
                                 <i class="fa-solid fa-user-plus"></i> Guardar
                             </button>
                         </div>
@@ -85,11 +68,11 @@
             </div>
         </div>
     </div>
-
     <script type="module">
         import { cargarCabecera } from "../js/base.js";
         cargarCabecera();
     </script>
-    <script type="module" src="../js/clientes.js"></script>
+    <script type="module" src="../js/productos.js"></script>    
 </body>
+
 </html>

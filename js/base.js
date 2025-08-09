@@ -1,5 +1,6 @@
 // base.js
-export const SERVER = 'http://localhost/distribucionesjn/';
+export const BASE_URL = window.location.origin + window.location.pathname.split("/").slice(0, 2).join("/");
+export const SERVER = `${BASE_URL}/`;
 
 export async function pet(url, data) {
     try {
@@ -12,16 +13,13 @@ export async function pet(url, data) {
         });
 
         if (!response.ok) {
-            if (response.status === 401 || response.status === 403) {
-                window.location.href = '/login.html';
-            }
             throw new Error("Error en la solicitud");
         }
 
         const res = await response.json();
 
         if (res.sesion === false) {
-            window.location.href = '/login.html';
+            window.location.href = `${BASE_URL}/loginview.php`;
         }
 
         return res;
@@ -109,7 +107,7 @@ export function formatearMoneda(valor, moneda = 'COP') {
 
 export function cargarCabecera() {
     document.addEventListener("DOMContentLoaded", function () {
-        fetch("../componentes/cabecera.html")
+        fetch("../componentes/cabecera.php")
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -152,18 +150,15 @@ export function cargarCabecera() {
 
 export async function protegerVista(callback) {
     const res = await pet("autenticacion/verificarSesion.php", {});
-    verificarSesion(res);
+    if (res.sesion === false) {
+        window.location.href = `${BASE_URL}/loginview.php`;
+        return;
+    }
     callback();
 }
 
-export function verificarSesion(res) {
-    if (res.sesion === false) {
-        window.location.href = '/login.html';
-    }
-}
-
 export function logout() {
-    fetch("/logout.php", { method: "POST" })
-        .then(() => window.location.href = "/login.html");
+    fetch(`${SERVER}autenticacion/logout.php`, { method: "POST" })
+        .then(() => window.location.href = `${BASE_URL}/loginview.php`);
 }
 

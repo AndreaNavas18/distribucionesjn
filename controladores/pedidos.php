@@ -41,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (isset($data['id'])) {
                     $id = $data['id'];
                     $pedido = verPedido($id);
-                    error_log("lo que llega " . print_r($pedido, true));
                     if ($pedido) {
                         $response["pedido"] = $pedido['pedido'];
                         $response["detalle"] = $pedido['detalle'];
@@ -94,7 +93,6 @@ function  guardarPedido($aForm) {
     } else {
         $whereEdita = "id=0";
     }
-    error_log("aForm: " . print_r($aForm, true));  
     try {
         $db->StartTrans();
         $sqlPedido = "SELECT id, idcliente, fecha, total, observacion FROM pedidos WHERE " . $whereEdita;
@@ -115,14 +113,12 @@ function  guardarPedido($aForm) {
             $db->Execute($sqlInsertPedido);
             $idPedido = $db->Insert_ID();
         }
-        error_log("productos: " . print_r($productos, true));
         foreach ($productos as $producto) {
             $idProducto = $producto['id'];
             $cantidad = $producto['cantidad'];
             $observacionproducto = $producto['observacionproducto'];
             $sugerido = $producto['preciosugerido'];
             $noorden = $producto['noorden'];
-            error_log("no orden : " . $noorden);
 
             if (isset($productosExistentes[$idProducto])) {
                 // Comparamos para ver si hay cambios
@@ -136,8 +132,6 @@ function  guardarPedido($aForm) {
                     "FROM detallepedidosfacturas ".
                     "WHERE idpedido = $idPedido AND idproducto = $idProducto";
                     $detalle = $db->Execute($sqlDetalle);
-                    error_log("sql UPDATE Detalle: " . $sqlDetalle);
-
                     $registroDetalle = [
                         "cantidad" => $cantidad,
                         "observacionproducto" => $observacionproducto,
@@ -159,7 +153,6 @@ function  guardarPedido($aForm) {
                 $sqlInsertDummy = "SELECT idpedido, idproducto, cantidad, observacionproducto, preciosugerido, noorden ".
                 "FROM detallepedidosfacturas WHERE 1=0";
                 $dummy = $db->Execute($sqlInsertDummy);
-                error_log("sql INSERT Detalle: " . $sqlInsertDummy);
                 $registroInsert = [
                     "idpedido" => $idPedido,
                     "idproducto" => $idProducto,
@@ -172,9 +165,6 @@ function  guardarPedido($aForm) {
                 $sqlInsert = $db->GetInsertSQL($dummy, $registroInsert);
                 $db->Execute($sqlInsert);
             }
-            error_log("Producto $idProducto actualizado");
-            error_log("Producto $idProducto insertado");
-            error_log("Producto $idProducto eliminado");
             
         }
         foreach ($productosExistentes as $idProductoEliminar => $datos) {
@@ -188,8 +178,6 @@ function  guardarPedido($aForm) {
     } catch (Exception $e) {
         $db->FailTrans();
         $db->CompleteTrans();
-
-        error_log("Error en guardarPedido: " . $e->getMessage());
         $r = false;
     }
 
@@ -216,14 +204,12 @@ function obtenerPedidos() {
         }
 
     } catch (Exception $e) {
-        error_log("Error en obtenerPedidos: " . $e->getMessage());
         return ["error" => "Error al obtener pedidos."];
     }
 }
 
 function verOrdenCompra($aForm) {
     global $db;
-    error_log("aForm: " . print_r($aForm, true));
 
     $fechaini = isset($aForm['fechaInicio']) ? $aForm['fechaInicio'] : null;
     $fechafin = isset($aForm['fechaFin']) && $aForm['fechaFin'] !== "" ? $aForm['fechaFin'] : $fechaini;
@@ -275,7 +261,6 @@ function verOrdenCompra($aForm) {
         "WHERE ped.fecha BETWEEN '" . $fechaini . "' AND '" . $fechafin ."' ". $rutasql . $pvsql . $pedidosql .
         " AND (dep.noorden != 1 OR dep.noorden IS NULL) GROUP BY $selectruta pod.nombre, pod.costo, pv.proveedor ".
         "ORDER BY pv.proveedor $orderruta";
-        error_log("SQL ORDEN: " . $sql);
         $result = $db->GetArray($sql);
 
         $sqlpedidos = "SELECT ped.id, ped.fecha, cl.nombre AS cliente, cl.ubicacion FROM pedidos ped ".
@@ -284,7 +269,6 @@ function verOrdenCompra($aForm) {
         " GROUP BY ped.id, ped.fecha, cl.nombre, cl.ubicacion ".
         "ORDER BY ped.fecha DESC";
         $pedidos = $db->GetArray($sqlpedidos);
-        error_log("SQL ORDEN Pedidos: " . $sqlpedidos);
 
         return [
             "orden" => $result ?? [],
@@ -292,7 +276,6 @@ function verOrdenCompra($aForm) {
         ];
 
     } catch (Exception $e) {
-        error_log("Error en verOrdenCompra: " . $e->getMessage());
         return ["error" => "Error al obtener la orden de compra."];
     }
 }
@@ -310,8 +293,6 @@ function verPedido($idPedido) {
     "LEFT JOIN productos pr ON dp.idproducto = pr.id ".
     "WHERE dp.idpedido =" . $idPedido . " ORDER BY dp.idproducto";
     $detallepedido = $db->GetArray($sqlDetalle);
-
-    error_log("SQL Pedido: " . $sqlPedido);
 
     return $pedido ? ["pedido" => $pedido, "detalle" => $detallepedido] : false;
 }

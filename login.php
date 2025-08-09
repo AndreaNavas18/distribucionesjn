@@ -1,7 +1,6 @@
 <?php
 session_start();
-require_once "./database.php";
-require_once "./vendor/adodb/adodb.inc.php";
+require_once __DIR__ . '/database.php';
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
@@ -16,21 +15,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $funcion = strtolower($data['funcion']);
         switch ($funcion) {
             case 'login':
-                $usuario = $data['usuario'] ?? '';
-                $clave = $data['clave'] ?? '';
+                // echo password_hash("123456", PASSWORD_BCRYPT);
+                $usuarioInput = $data['usuario'] ?? '';
+                $claveInput = $data['clave'] ?? '';
 
-                $db = ADONewConnection('postgres');
-                $db->Connect('localhost', 'usuario', 'clave', 'nombre_bd');
+                $sql = "SELECT id, usuario, clave FROM usuarios WHERE usuario='".$usuarioInput."'";
+                $usuario = $db->GetRow($sql);
 
-                $sql = "SELECT id, clave, rol FROM usuarios WHERE usuario = $1";
-                $usuario = $db->GetRow($sql, [$usuario]);
-
-                if ($usuario && password_verify($clave, $usuario['clave'])) {
-                    $_SESSION['usuario_id'] = $usuario['id'];
-                    $_SESSION['rol'] = $usuario['rol'];
+                if ($usuario && password_verify($claveInput, $usuario['clave'])) {
+                    $_SESSION['idusuario'] = $usuario['id'];
+                    $_SESSION['usuario'] = $usuario['usuario'];
+                    $baseUrl = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+                    $response['redirect'] = "{$baseUrl}/vistas/home.php";
                     $response['ok'] = true;
-                    $response['usuario'] = $usuario['usuario'];
-                    $response['rol'] = $usuario['rol'];
                 } else {
                     $response['ok'] = false;
                     $response['mensaje'] = 'Credenciales inválidas';

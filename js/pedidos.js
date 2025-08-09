@@ -1,6 +1,6 @@
-import { SERVER, pet, initSelect2, formatearMoneda, initDataTable, protegerVista  } from "./base.js";
+import { SERVER, pet, initSelect2, formatearMoneda, initDataTable, protegerVista } from "./base.js";
 
-document.addEventListener("DOMContentLoaded", async function() {
+document.addEventListener("DOMContentLoaded", function() {
     protegerVista(() => {
         const vista = document.body.id;
         if (vista === "tomarPedido") {
@@ -137,7 +137,7 @@ function editarPedido() {
         boton.addEventListener("click", function () {
             console.log("Editar pedido xx");
             const idPedido = this.dataset.id;
-            window.location.href = `tomarPedido.html?id=${idPedido}`;
+            window.location.href = `tomarPedido.php?id=${idPedido}`;
         });
     });
 }
@@ -478,7 +478,7 @@ function guardarPedido(idPedido = null) {
             });
             if (idPedido) {
                 setTimeout(() => {
-                    window.location.href = '../index.html';
+                    window.location.href = '../vistas/home.php';
                 }, 2000);
             } else {
                 tablaPedidoBody.innerHTML = "";

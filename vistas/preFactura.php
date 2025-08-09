@@ -1,9 +1,11 @@
+
+<?php require_once __DIR__ . '/../autenticacion/proteger.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tomar Pedido</title>
+    <title>Pre Factura</title>
     <link rel="stylesheet" href="../css/pedido.css">
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
 
@@ -25,21 +27,19 @@
     <!-- SweetAlert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body id="tomarPedido" class="bg-light">
+<body id="prefactura" class="bg-light">
     <div id="cabecera"></div>
     <div class="container mt-4" id="contenidoPedido">
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <div id="divTarjetaP" class="card shadow p-4">
-                    <!-- <h1 class="text-center mb-4"></h1> -->
-
+                    <h1 class="text-center mb-4">Pre Factura</h1>
                     <form id="formPedido">
                         <div class="mb-3">
                             <label for="cliente" class="form-label">
                                 <h5>Cliente</h5>
                             </label>
                             <select class="form-select" name="cliente" id="slcClientes">
-                                <option value="elegir">Elegir un cliente</option>
                             </select>
                         </div>
 
@@ -66,7 +66,7 @@
                         </div>
 
                         <div class="text-center mt-3">
-                            <button class="btn btn-primary btn-lg w-100" type="button" id="btnAgregar">Agregar</button>
+                            <button class="btn btn-primary btn-lg w-100" type="button" id="btnAgregar">Añadir</button>
                         </div>
                     </form>
                 </div>
@@ -75,10 +75,10 @@
             <div class="col-lg-10 mt-4">
                 <div class="card shadow p-4">
                     <div class="table-responsive">
-                        <table id="tablaPedido" class="table table-striped table-hover table-bordered">
+                        <table id="tablaPreFactura" class="table table-striped table-hover table-bordered">
                             <thead class="table-dark text-center">
                                 <tr>
-                                    <th>Cantidad</th>
+                                    <th>Cantidad Pedida</th>
                                     <th id="codigoProd">Código</th>
                                     <th>Producto</th>
                                     <th>Valor Unitario</th>
@@ -86,19 +86,13 @@
                                     <th>Precio Sugerido</th>
                                     <th>Subtotal Sugerido</th>
                                     <th>Observacion</th>
-                                    <th colspan="2">Acciones</th>
+                                    <th>Acciones</th>
+                                    <th>Cantidad empacada</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tbodyPreFactura">
                             </tbody>
                         </table>
-                    </div>
-
-                    <div class="mt-4">
-                        <label for="total" class="form-label">
-                            <h5>Total</h5>
-                        </label>
-                        <input class="form-control form-control-lg text-center" type="text" name="total" id="totalPedido" disabled>
                     </div>
 
                     <div class="mt-3">
@@ -109,7 +103,7 @@
                     </div>
 
                     <div class="mt-4 text-center">
-                        <button class="btn btn-success btn-lg w-100" id="btnGuardarPedido">Guardar Pedido</button>
+                        <button class="btn btn-success btn-lg w-100" id="btnGuardarPrefactura">Guardar Cambios</button>
                     </div>
                 </div>
             </div>
@@ -120,7 +114,7 @@
         import { cargarCabecera } from "../js/base.js";
         cargarCabecera();
     </script>
-    <script type="module" src="../js/pedidos.js"></script>
+    <script type="module" src="../js/facturas.js"></script>
 </body>
 
 </html>

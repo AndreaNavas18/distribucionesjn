@@ -33,7 +33,7 @@ function inicializarLogin() {
         });
 
         if (respuesta.ok) {
-            window.location.href = "../vistas/home.html";
+            window.location.href = respuesta.redirect;
         } else {
             mostrarError(respuesta.mensaje || "Credenciales incorrectas.");
         }

@@ -1,9 +1,10 @@
+<?php require_once __DIR__ . '/../autenticacion/proteger.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedidos Activos</title>
+    <title>Historial pedidos</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
 
@@ -25,25 +26,41 @@
     <!-- SweetAlert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body id="pedidosActivos" class="bg-light">
+<body id="historialPedidos" class="bg-light">
     <div id="cabecera"></div>
 
     <div class="container mt-4">
         <div class="row justify-content-center">
             <div class="col-lg-10 col-md-12">
                 <div class="card shadow p-4">
-                    <h1 class="text-center mb-4">Pedidos Activos</h1>
+                    <h1 class="text-center mb-4">Historial de Pedidos</h1>
+                    <div class="row mb-3">
+                        <select id="filtroPedido" class="form-select">
+                            <option value="">Seleccione un filtro</option>
+                            <option value="empacados">Pedidos empacados</option>
+                            <option value="sinempacar">Pedidos sin empacar</option>
+                        </select>
+                    </div>
+                    <div class="col-12 text-center mt-3">
+                        <button type="button" class="btn btn-primary" id="btnFiltroHp">Filtrar</button>
+                    </div>
+                    <div class="col-12 text-center mt-3">
+                        <button type="button" id="btnImprimirSeleccionados" class="btn btn-success">Imprimir seleccionados</button>
 
+                    </div>
                     <div class="table-responsive">
-                        <table id="tablaPedidosA" class="table table-striped table-hover table-bordered">
+                        <table id="tablaHistorialP" class="table table-striped table-hover table-bordered">
                             <thead class="table-dark text-center">
                                 <tr>
+                                    <th></th>
                                     <th>Fecha</th>
                                     <th>Cliente</th>
+                                    <th>Total</th>
+                                    <th>Observacion general</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="bodyPedidosA">
+                            <tbody id="pedidos">
                             </tbody>
                         </table>
                     </div>
@@ -53,9 +70,9 @@
     </div>
 
     <script type="module">
-        import { cargarCabecera } from "../js/base.js";+
+        import { cargarCabecera } from "../js/base.js";
         cargarCabecera();
     </script>
-    <script type="module" src="../js/facturas.js"></script>
+    <script type="module" src="../js/pedidos.js"></script>
 </body>
 </html>

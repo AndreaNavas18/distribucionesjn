@@ -29,7 +29,6 @@
 
     <div class="login-links">
       <a href="#">¿Olvidó su contraseña?</a> <br>
-      <a href="./vistas/registro.html">¿No tiene cuenta? Regístrese</a>
     </div>
   </div>
 

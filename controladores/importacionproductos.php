@@ -32,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
 
             $sql = "INSERT INTO productos (nombre, precioventa, costo, idproveedor)
                     VALUES (?, ?, ?, ?)";
-            error_log("sql importacion productos " . $sql);
             $params = [$nombre, $precio, $costo, $proveedor];
 
             // Ejecutar consulta
