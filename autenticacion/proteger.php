@@ -6,12 +6,15 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../helpers/permisos.php';
 
 if (!isset($_SESSION['idusuario'])) {
-    $baseUrl = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
-    $parts = explode('/', trim($baseUrl, '/'));
-    if (end($parts) === 'vistas') {
-        array_pop($parts);
+    $scriptName = $_SERVER['SCRIPT_NAME'];
+    $basePath = dirname($scriptName);
+
+    if (basename($basePath) === 'vistas') {
+        $basePath = dirname($basePath);
     }
-    $baseUrl = '/' . implode('/', $parts);
-    header("Location: {$baseUrl}/loginview.php");
+
+    $location = $basePath . '/loginview.php';
+
+    header("Location: $location");
     exit;
 }

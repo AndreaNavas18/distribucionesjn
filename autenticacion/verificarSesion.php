@@ -5,7 +5,12 @@ header('Content-Type: application/json');
 // Detectar ruta base automáticamente
 $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
 $host = $_SERVER['HTTP_HOST'];
-$basePath = rtrim(dirname($_SERVER['SCRIPT_NAME'], 2), '/'); // sube dos carpetas (de /autenticacion/)
+$scriptName = $_SERVER['SCRIPT_NAME'];
+$basePath = dirname($scriptName);
+
+if (basename($basePath) === 'autenticacion') {
+    $basePath = dirname($basePath);
+}
 
 $baseUrl = $protocolo . "://" . $host . $basePath;
 

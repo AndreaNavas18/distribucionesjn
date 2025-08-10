@@ -1,5 +1,16 @@
 // base.js
-export const BASE_URL = window.location.origin + window.location.pathname.split("/").slice(0, 2).join("/");
+const pathname = window.location.pathname;
+const parts = pathname.split('/').filter(Boolean);
+
+if (parts.includes('vistas')) {
+    parts.pop();
+    parts.pop();
+}
+
+const basePath = '/' + parts.join('/');
+export const BASE_URL = window.location.origin + basePath;
+
+// export const BASE_URL = window.location.origin + window.location.pathname.split("/").slice(0, 2).join("/");
 export const SERVER = `${BASE_URL}/`;
 
 export async function pet(url, data) {
