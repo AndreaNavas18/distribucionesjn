@@ -1,14 +1,18 @@
 <?php
 require_once 'vendor/adodb/adodb-php/adodb.inc.php';
 
-$dbType = 'pgsql';
-$host = '127.0.0.1';
-//base de datos OLD
-// $database = 'distribucionesjn';
-//base de datos ACTUALIZADA
-$database = 'pruebasdistribucionesjn';
-$username = 'postgres';
-$password = 'postgres';
+if (file_exists(__DIR__ . '/.env')) {
+    $env = parse_ini_file(__DIR__ . '/.env');
+    foreach ($env as $key => $value) {
+        putenv("$key=$value");
+    }
+}
+
+$dbType   = 'pgsql';
+$host     = getenv('DB_HOST');
+$database = getenv('DB_NAME');
+$username = getenv('DB_USER');
+$password = getenv('DB_PASS');
 
 $db = ADONewConnection($dbType);
 

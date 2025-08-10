@@ -22,10 +22,12 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 async function verProductos() {
+    const tbody = document.getElementById("productos");
+    tbody.innerHTML = `<tr><td colspan="10" class="text-center">Cargando productos...</td></tr>`;
+
     const data = await pet("controladores/productos.php", {funcion: "obtenerproductos"});
 
     if (data.productos && Array.isArray(data.productos)) {
-        const tbody = document.getElementById("productos");
         tbody.innerHTML = data.productos.map(producto => {
             const costoProducto = parseFloat(producto.costo);
             return `

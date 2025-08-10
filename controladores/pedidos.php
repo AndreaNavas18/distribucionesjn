@@ -1,10 +1,5 @@
 <?php
-require_once '../database.php';
-
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json');
+require_once '../init.php';
 
 $response = array();
 // echo json_encode(["debug" => $_POST]);
