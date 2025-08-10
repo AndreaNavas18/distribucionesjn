@@ -1,4 +1,7 @@
-<?php require_once __DIR__ . '/../autenticacion/proteger.php'; ?>
+<?php 
+require_once __DIR__ . '/../autenticacion/proteger.php'; 
+require_once __DIR__ . '/../config.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,5 +75,8 @@
     <?php endif; ?>
 
     <script type="module" src="../js/home.js"></script>
+    <script>
+    const BASE_URL = "<?php echo BASE_URL; ?>";
+    </script>
 </body>
 </html>

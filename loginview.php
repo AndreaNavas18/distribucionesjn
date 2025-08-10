@@ -1,3 +1,6 @@
+<?php
+require_once __DIR__ . '/config.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,6 +35,9 @@
     </div>
   </div>
 
-    <script type="module" src="./js/login.js"></script>
+  <script type="module" src="./js/login.js"></script>
+  <script>
+  const BASE_URL = "<?php echo BASE_URL; ?>";
+  </script>
 </body>
 </html>

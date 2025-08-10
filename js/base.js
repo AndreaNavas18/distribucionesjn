@@ -1,21 +1,8 @@
-// base.js
-const pathname = window.location.pathname;
-const parts = pathname.split('/').filter(Boolean);
-
-if (parts.includes('vistas')) {
-    parts.pop();
-    parts.pop();
-}
-
-const basePath = '/' + parts.join('/');
-export const BASE_URL = window.location.origin + basePath;
-
-// export const BASE_URL = window.location.origin + window.location.pathname.split("/").slice(0, 2).join("/");
-export const SERVER = `${BASE_URL}/`;
-
+export const SERVER = BASE_URL + '/';
 export async function pet(url, data) {
     try {
-        const response = await fetch(SERVER + url, {
+        const fullUrl = url.startsWith("/") ? BASE_URL + url : SERVER + url;
+        const response = await fetch(fullUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -28,7 +15,7 @@ export async function pet(url, data) {
         }
 
         const res = await response.json();
-
+        
         if (res.sesion === false) {
             window.location.href = `${BASE_URL}/loginview.php`;
         }

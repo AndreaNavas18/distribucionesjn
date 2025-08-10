@@ -1,12 +1,7 @@
 <?php
 session_start();
-require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/helpers/permisos.php';
-
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json');
 
 $response = array();
 
@@ -46,5 +41,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     $response["error"] = "No se especificó ninguna función";
 }
-
+error_log("Respuesta que se enviará: " . print_r($response, true));
 echo json_encode($response);

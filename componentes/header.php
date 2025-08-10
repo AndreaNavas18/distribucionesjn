@@ -1,4 +1,7 @@
-<?php require_once __DIR__ . '/../autenticacion/proteger.php'; ?>
+<?php 
+require_once __DIR__ . '/../autenticacion/proteger.php'; 
+require_once __DIR__ . '/../config.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,4 +28,7 @@
 
     <!-- SweetAlert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    const BASE_URL = "<?php echo BASE_URL; ?>";
+    </script>
 </head>
