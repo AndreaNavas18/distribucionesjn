@@ -19,7 +19,7 @@ if (!isset($_SESSION['idusuario'])) {
 
     $location = $basePath . '/loginview.php';
 
-    var_dump("Redirigiendo a $location");
+    error_log("Redirigiendo a $location");
     header("Location: $location");
     exit;
 }
