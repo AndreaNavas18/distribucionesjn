@@ -13,8 +13,13 @@ if (!isset($_SESSION['idusuario'])) {
         $basePath = dirname($basePath);
     }
 
+    if ($basePath === '/' || $basePath === '\\') {
+        $basePath = '';
+    }
+
     $location = $basePath . '/loginview.php';
 
+    var_dump("Redirigiendo a $location");
     header("Location: $location");
     exit;
 }
