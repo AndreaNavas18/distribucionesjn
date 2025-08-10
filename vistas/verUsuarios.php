@@ -1,26 +1,27 @@
 <?php
-$tituloPagina = "Pedidos Activos";
+$tituloPagina = "Usuarios";
 require_once __DIR__ . '/../componentes/header.php';
 ?>
-<body id="pedidosActivos" class="bg-light">
+<body id="verUsuarios" class="bg-light">
     <div id="cabecera"></div>
-
+ 
     <div class="container mt-4">
         <div class="row justify-content-center">
-            <div class="col-lg-10 col-md-12">
+            <div class="col-lg-10">
                 <div class="card shadow p-4">
-                    <h1 class="text-center mb-4">Pedidos Activos</h1>
-
+                    <h1 class="text-center mb-4">Usuarios</h1>
+ 
                     <div class="table-responsive">
-                        <table id="tablaPedidosA" class="table table-striped table-hover table-bordered">
+                        <table id="tablaUsuarios" class="table table-striped table-hover table-bordered">
                             <thead class="table-dark text-center">
                                 <tr>
-                                    <th>Fecha</th>
-                                    <th>Cliente</th>
+                                    <th>Usuario</th>
+                                    <th>Nombre</th>
+                                    <th>Rol</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="bodyPedidosA">
+                            <tbody id="usuarios">
                             </tbody>
                         </table>
                     </div>
@@ -29,5 +30,6 @@ require_once __DIR__ . '/../componentes/header.php';
         </div>
     </div>
     
-    <script type="module" src="../js/facturas.js"></script>
+    <script type="module" src="../js/usuarios.js"></script>
+
 <?php require_once __DIR__ . '/../componentes/footer.php'; ?>

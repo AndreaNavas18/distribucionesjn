@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/helpers/permisos.php';
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
@@ -18,15 +19,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // echo password_hash("123456", PASSWORD_BCRYPT);
                 $usuarioInput = $data['usuario'] ?? '';
                 $claveInput = $data['clave'] ?? '';
-
+                error_log("Usuario: $usuarioInput, Clave: $claveInput");
                 $sql = "SELECT id, usuario, clave FROM usuarios WHERE usuario='".$usuarioInput."'";
                 $usuario = $db->GetRow($sql);
-
+                error_log("query: ".$sql);
                 if ($usuario && password_verify($claveInput, $usuario['clave'])) {
                     $_SESSION['idusuario'] = $usuario['id'];
                     $_SESSION['usuario'] = $usuario['usuario'];
+                    cargarPermisosUsuario($usuario['id'], $db);
                     $baseUrl = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-                    $response['redirect'] = "{$baseUrl}/vistas/home.php";
+                    $response['redirect'] = "{$baseUrl}/vistas/homeview.php";
                     $response['ok'] = true;
                 } else {
                     $response['ok'] = false;

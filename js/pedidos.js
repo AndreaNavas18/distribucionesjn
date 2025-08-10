@@ -478,7 +478,7 @@ function guardarPedido(idPedido = null) {
             });
             if (idPedido) {
                 setTimeout(() => {
-                    window.location.href = '../vistas/home.php';
+                    window.location.href = '../vistas/homeview.php';
                 }, 2000);
             } else {
                 tablaPedidoBody.innerHTML = "";

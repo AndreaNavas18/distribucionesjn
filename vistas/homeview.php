@@ -12,6 +12,12 @@
     <link rel="stylesheet" href="../css/index.css">
 </head>
 <body id="home">
+    <header class="d-flex justify-content-between align-items-center p-3">
+        <a href="../autenticacion/logout.php" class="btn btn-outline-danger" style="position:fixed; top:10px; right:10px; z-index:1000;">
+            <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+    </header>
+
     <section class="hero">
         <img src="../public/images/logo.png" alt="Logo" class="logoInicio">
         <div class="search-box position-relative">
@@ -44,19 +50,27 @@
             </form>
         </div>
     </section>
-    
-    <section class="buttons-grid">
-        <a href="./tomarPedido.php" id="tomarPedido">Tomar Pedido</a>
-        <a href="./crearCliente.php">Crear Cliente</a>
-        <a href="./verProductos.php">Ver Productos</a>
-        <a href="./verClientes.php">Ver Clientes</a>
-        <a href="./historialPedidos.php">Historial Pedidos</a>
-        <a href="./ordenCompra.php">Orden de Compra</a>
-        <a href="./crearProducto.php">Crear Producto</a>
-        <a href="./pedidosActivos.php">Pedidos Activos</a>
-    </section>
+    <?php if (can('VERSECCIONADMIN')): ?>
+        <section class="buttons-grid">
+            <a href="./tomarPedido.php" id="tomarPedido">Tomar Pedido</a>
+            <a href="./historialPedidos.php">Historial Pedidos</a>
+            <a href="./pedidosActivos.php">Pedidos Activos</a>
+            <a href="./ordenCompra.php">Orden de Compra</a>
+            <a href="./verProductos.php">Ver Productos</a>
+            <a href="./verClientes.php">Ver Clientes</a>
+            <a href="./verUsuarios.php">Ver Usuarios</a>
+            <a href="./crearProducto.php">Crear Producto</a>
+            <a href="./crearCliente.php">Crear Cliente</a>
+            <a href="./crearUsuario.php">Crear Usuario</a>
+        </section>
+    <?php endif; ?>
 
-    <script type="module" src="../js/productos.js"></script>
+    <?php if (can('VERSECCIONEMPACADOR')): ?>
+        <section class="buttons-grid">
+            <a href="./pedidosActivos.php">Pedidos Activos</a>
+        </section>
+    <?php endif; ?>
+
     <script type="module" src="../js/home.js"></script>
 </body>
 </html>

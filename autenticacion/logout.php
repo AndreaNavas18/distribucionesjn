@@ -2,4 +2,5 @@
 session_start();
 session_unset();
 session_destroy();
-echo json_encode(['ok' => true]);
+header("Location: ../loginview.php");
+exit;

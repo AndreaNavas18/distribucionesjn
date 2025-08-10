@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($clientes) {
                     $response["clientes"] = $clientes;
                 } else {
-                    $response["error"] = "No se encontraron pedidos";
+                    $response["error"] = "No se encontraron clientes";
                 }
                 break;
 

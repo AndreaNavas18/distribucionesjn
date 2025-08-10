@@ -237,7 +237,7 @@ function changesPrefactura(idPedido) {
                 if (result.isConfirmed) {
                     window.location.href = 'pedidosActivos.php';
                 } else if (result.dismiss === Swal.DismissReason.cancel) {
-                    window.location.href = '../vistas/home.php';
+                    window.location.href = '../vistas/homeview.php';
                 }
             });
         } else {

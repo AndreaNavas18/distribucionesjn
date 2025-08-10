@@ -13,14 +13,16 @@
 <!-- Menú desplegable (oculto al inicio) -->
 <div id="menuLateral" class="menu-lateral bg-white shadow" style="display: none;">
     <ul class="list-group list-group-flush">
-        <a href="../vistas/home.php" class="list-group-item">Inicio</a>
+        <a href="../vistas/homeview.php" class="list-group-item">Inicio</a>
         <a href="../vistas/tomarPedido.php" class="list-group-item">Tomar Pedido</a>
+        <a href="../vistas/historialPedidos.php" class="list-group-item">Historial Pedidos</a>
+        <a href="../vistas/pedidosActivos.php" class="list-group-item">Pedidos Activos</a>
+        <a href="../vistas/ordenCompra.php" class="list-group-item">Orden de Compra</a>
         <a href="../vistas/crearCliente.php" class="list-group-item">Crear Cliente</a>
+        <a href="../vistas/crearProducto.php" class="list-group-item">Crear Producto</a>
+        <a href="../vistas/crearUsuario.php" class="list-group-item">Crear Usuario</a>
         <a href="../vistas/verProductos.php" class="list-group-item">Ver Productos</a>
         <a href="../vistas/verClientes.php" class="list-group-item">Ver Clientes</a>
-        <a href="../vistas/historialPedidos.php" class="list-group-item">Historial Pedidos</a>
-        <a href="../vistas/ordenCompra.php" class="list-group-item">Orden de Compra</a>
-        <a href="../vistas/crearProducto.php" class="list-group-item">Crear Producto</a>
-        <a href="../vistas/pedidosActivos.php" class="list-group-item">Pedidos Activos</a>
+        <a href="../vistas/verUsuarios.php" class="list-group-item">Ver Usuarios</a>
     </ul>
 </div>
