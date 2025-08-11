@@ -11,7 +11,7 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 
 $dbType = 'pgsql';
 
-$databaseUrl = getenv('DATABASE_URL') ?: ($_ENV['DATABASE_URL'] ?? null);
+$databaseUrl = $_ENV['DATABASE_URL'] ?? null;
 
 if ($databaseUrl) {
     $parts = parse_url($databaseUrl);
@@ -21,12 +21,15 @@ if ($databaseUrl) {
     $password = $parts['pass'] ?? '';
     $database = ltrim($parts['path'] ?? '', '/');
 } else {
-    $host     = getenv('DB_HOST') ?: '127.0.0.1';
-    $port     = getenv('DB_PORT') ?: '5432';
-    $database = getenv('DB_NAME') ?: 'pruebasdistribucionesjn';
-    $username = getenv('DB_USER') ?: 'postgres';
-    $password = getenv('DB_PASS') ?: 'postgres';
+    $host     = $_ENV['DB_HOST'] ?? '127.0.0.1';
+    $port     = $_ENV['DB_PORT'] ?? '5432';
+    $database = $_ENV['DB_NAME'] ?? 'pruebasdistribucionesjn';
+    $username = $_ENV['DB_USER'] ?? 'postgres';
+    $password = $_ENV['DB_PASS'] ?? 'postgres';
 }
+
+//ver en un log si hay error en la conexion
+error_log("Conectando a la base de datos {$dbType} en {$host}:{$port}, base de datos: {$database}, usuario: {$username}", 0);
 
 $db = ADONewConnection($dbType);
 
