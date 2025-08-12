@@ -64,7 +64,7 @@ foreach ($ids as $idPedido) {
     $mpdf->SetHTMLHeader($encabezadoHTML);
     $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($htmlFactura, \Mpdf\HTMLParserMode::HTML_BODY);
-    $pdfDir = __DIR__ . '/../pdfs';
+    $pdfDir = __DIR__ . '/../public/pdfs';
     if (!file_exists($pdfDir)) {
         mkdir($pdfDir, 0777, true);
     }
@@ -83,7 +83,8 @@ foreach ($ids as $idPedido) {
 
     try {
         $mpdf->Output($pdfPath, "F");
-        $pdfUrls[] = "/distribucionesjn/pdfs/" . $pdfFileName;
+        $baseUrl = rtrim($_ENV['BASE_URL'], '/');
+        $pdfUrls[] = $baseUrl . "/pdfs/" . $pdfFileName;
     } catch (\Mpdf\MpdfException $e) {
         error_log("Error generando PDF para pedido $idPedido: " . $e->getMessage());
     }

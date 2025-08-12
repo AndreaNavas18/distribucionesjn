@@ -87,13 +87,21 @@ if ($incluirTotal) {
 $html .= '</tbody></table>';
 
 $mpdf->WriteHTML($html);
-$pdfDir = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "pdfs";
-$pdfFileName = $pdfDir . DIRECTORY_SEPARATOR . "ordendecompra_" . date("YmdHis") . ".pdf";
-$mpdf->Output($pdfFileName, "F");
+$pdfDir = __DIR__ . '/../public/pdfs';
+if (!is_dir($pdfDir)) {
+    mkdir($pdfDir, 0777, true);
+}
+
+$pdfFileName = "ordendecompra_" . date("YmdHis") . ".pdf";
+$pdfFilePath = $pdfDir . '/' . $pdfFileName;
+$mpdf->Output($pdfFilePath, "F");
+
+$baseUrl = $_ENV['BASE_URL'] ?? '';
+$pdfUrl = rtrim($baseUrl, '/') . '/public/pdfs/' . $pdfFileName;
 
 echo json_encode([
     "success" => true,
-    "pdfUrl" => "/distribucionesjn/pdfs/" . basename($pdfFileName)
+    "pdfUrl" => $pdfUrl,
 ]);
 exit;
 ?>
