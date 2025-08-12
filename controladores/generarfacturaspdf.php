@@ -1,6 +1,8 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../database.php';
+
+use GuzzleHttp\Client;
 use Mpdf\Mpdf;
 
 header("Content-Type: application/json");
@@ -60,14 +62,10 @@ foreach ($ids as $idPedido) {
     </div>
     ';
 
-    //Insertar CSS y HTML
     $mpdf->SetHTMLHeader($encabezadoHTML);
     $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($htmlFactura, \Mpdf\HTMLParserMode::HTML_BODY);
-    $pdfDir = __DIR__ . '/../public/pdfs';
-    if (!file_exists($pdfDir)) {
-        mkdir($pdfDir, 0777, true);
-    }
+
     $meses = [
         1 => 'enero', 2 => 'febrero', 3 => 'marzo', 4 => 'abril',
         5 => 'mayo', 6 => 'junio', 7 => 'julio', 8 => 'agosto',
@@ -79,14 +77,35 @@ foreach ($ids as $idPedido) {
     $fechaHoy = "{$dia}{$mes}{$anio}";
     $nombreCliente = preg_replace('/[^A-Za-z0-9_\-]/', '_', $pedido['cliente_nombre']);
     $pdfFileName = "{$fechaHoy}_{$nombreCliente}.pdf";
-    $pdfPath = $pdfDir . '/' . $pdfFileName;
 
-    try {
+    // Detectar entorno (local o producción)
+    $isProduction = ($_ENV['APP_ENV'] ?? 'local') === 'production';
+
+    if ($isProduction) {
+        // Guardar temporalmente
+        $tempPath = sys_get_temp_dir() . '/' . $pdfFileName;
+        $mpdf->Output($tempPath, "F");
+
+        // Subir a Supabase
+        $pdfUrl = subirPDFaSupabase($tempPath, $pdfFileName);
+        if ($pdfUrl) {
+            $pdfUrls[] = $pdfUrl;
+        } else {
+            $pdfUrls[] = "ERROR_SUBIENDO_PDF";
+        }
+
+        // Eliminar archivo temporal
+        @unlink($tempPath);
+    } else {
+        // Guardar en carpeta local
+        $pdfDir = __DIR__ . '/../pdfs';
+        if (!is_dir($pdfDir)) {
+            mkdir($pdfDir, 0777, true);
+        }
+        $pdfPath = $pdfDir . '/' . $pdfFileName;
         $mpdf->Output($pdfPath, "F");
-        $baseUrl = rtrim($_ENV['BASE_URL'], '/');
-        $pdfUrls[] = $baseUrl . "/pdfs/" . $pdfFileName;
-    } catch (\Mpdf\MpdfException $e) {
-        error_log("Error generando PDF para pedido $idPedido: " . $e->getMessage());
+
+        $pdfUrls[] = "/distribucionesjn/pdfs/" . $pdfFileName;
     }
 }
 
@@ -95,6 +114,34 @@ echo json_encode([
     "pdfUrls" => $pdfUrls
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 exit;
+
+function subirPDFaSupabase($pdfPath, $pdfFileName) {
+    $supabaseUrl = $_ENV['SUPABASE_URL'];
+    $supabaseAnonKey = $_ENV['SUPABASE_ANON_KEY'];
+    $bucketName = 'pdfs';
+
+    $client = new Client();
+
+    try {
+        $response = $client->request('POST', "$supabaseUrl/storage/v1/object/$bucketName/$pdfFileName", [
+            'headers' => [
+                'apikey' => $supabaseAnonKey,
+                'Authorization' => "Bearer $supabaseAnonKey",
+                'Content-Type' => 'application/pdf',
+                'x-upsert' => 'true'
+            ],
+            'body' => file_get_contents($pdfPath)
+        ]);
+
+        if (in_array($response->getStatusCode(), [200, 201])) {
+            return "$supabaseUrl/storage/v1/object/public/$bucketName/$pdfFileName";
+        }
+        return null;
+    } catch (\Exception $e) {
+        error_log("Error subiendo PDF a Supabase: " . $e->getMessage());
+        return null;
+    }
+}
 
 function obtenerPedidoPorId($idPedido) {
     global $db;
