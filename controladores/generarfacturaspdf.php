@@ -76,7 +76,8 @@ foreach ($ids as $idPedido) {
     $anio = date('Y');
     $fechaHoy = "{$dia}{$mes}{$anio}";
     $nombreCliente = preg_replace('/[^A-Za-z0-9_\-]/', '_', $pedido['cliente_nombre']);
-    $pdfFileName = "{$fechaHoy}_{$nombreCliente}.pdf";
+    $oidUnico = uniqid();
+    $pdfFileName = "{$fechaHoy}_{$nombreCliente}_{$oidUnico}.pdf";
 
     // Detectar entorno (local o producción)
     $isProduction = ($_ENV['APP_ENV'] ?? 'local') === 'production';
@@ -120,9 +121,31 @@ function subirPDFaSupabase($pdfPath, $pdfFileName) {
     $supabaseAnonKey = $_ENV['SUPABASE_ANON_KEY'];
     $bucketName = 'pdfs';
 
+    error_log("📄 Iniciando subida de PDF a Supabase");
+    error_log("Ruta PDF: $pdfPath");
+    error_log("Nombre en Supabase: $pdfFileName");
+    error_log("Supabase URL: $supabaseUrl");
+    error_log("Bucket: $bucketName");
+
+    if (!file_exists($pdfPath)) {
+        error_log("❌ El archivo PDF no existe en la ruta especificada");
+        return null;
+    }
+
+    $fileSize = filesize($pdfPath);
+    error_log("Tamaño del PDF: {$fileSize} bytes");
+
     $client = new Client();
 
     try {
+        $bodyContent = file_get_contents($pdfPath);
+        if ($bodyContent === false) {
+            error_log("❌ No se pudo leer el archivo PDF");
+            return null;
+        }
+
+        error_log("Enviando solicitud POST a: {$supabaseUrl}/storage/v1/object/{$bucketName}/{$pdfFileName}");
+
         $response = $client->request('POST', "$supabaseUrl/storage/v1/object/$bucketName/$pdfFileName", [
             'headers' => [
                 'apikey' => $supabaseAnonKey,
@@ -130,12 +153,23 @@ function subirPDFaSupabase($pdfPath, $pdfFileName) {
                 'Content-Type' => 'application/pdf',
                 'x-upsert' => 'true'
             ],
-            'body' => file_get_contents($pdfPath)
+            'body' => $bodyContent
         ]);
 
+        $statusCode = $response->getStatusCode();
+        error_log("Código de respuesta HTTP: $statusCode");
+
+        $responseBody = (string) $response->getBody();
+        error_log("Cuerpo de respuesta: $responseBody");
+
         if (in_array($response->getStatusCode(), [200, 201])) {
-            return "$supabaseUrl/storage/v1/object/public/$bucketName/$pdfFileName";
+            $publicUrl = "$supabaseUrl/storage/v1/object/public/$bucketName/$pdfFileName";
+            error_log("✅ Subida exitosa. URL pública: $publicUrl");
+            return $publicUrl;
         }
+
+        error_log("❌ Falló la subida. Código HTTP: $statusCode");
+
         return null;
     } catch (\Exception $e) {
         error_log("Error subiendo PDF a Supabase: " . $e->getMessage());
