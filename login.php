@@ -15,12 +15,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $usuarioInput = $data['usuario'] ?? '';
                 $claveInput = $data['clave'] ?? '';
                 error_log("Usuario: $usuarioInput, Clave: $claveInput");
-                $sql = "SELECT id, usuario, clave FROM usuarios WHERE usuario='".$usuarioInput."'";
+                $sql = "SELECT u.id, u.usuario, u.clave, r.id as idrol, r.nombre FROM usuarios AS u ".
+                "LEFT JOIN usuariorol AS ur ON (ur.idusuario=u.id) ".
+                "LEFT JOIN roles AS r ON (r.id=ur.idrol) ".
+                "WHERE u.usuario='".$usuarioInput."'";
                 $usuario = $db->GetRow($sql);
                 error_log("query: ".$sql);
                 if ($usuario && password_verify($claveInput, $usuario['clave'])) {
                     $_SESSION['idusuario'] = $usuario['id'];
                     $_SESSION['usuario'] = $usuario['usuario'];
+                    $_SESSION['idrol'] = $usuario['idrol'];
+                    $_SESSION['rol'] = $usuario['nombre'];
                     cargarPermisosUsuario($usuario['id'], $db);
                     $baseUrl = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
                     $response['redirect'] = "{$baseUrl}/vistas/homeview.php";

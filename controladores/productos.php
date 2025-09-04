@@ -68,7 +68,7 @@ function obtenerProductos() {
     global $db;
 
     try {
-        $sql = "SELECT p.id, p.nombre, p.precioventa, p.costo, pv.proveedor FROM productos as p ".
+        $sql = "SELECT p.id, p.nombre, p.precioventa, p.costo, pv.proveedor, p.precioventanew FROM productos as p ".
         "LEFT JOIN proveedores as pv ON p.idproveedor = pv.id";
         $productos = $db->GetArray($sql);
 
@@ -87,11 +87,11 @@ function buscarProductos($query) {
 
     try {
         if (empty($query)) {
-            $sql = "SELECT id, nombre, precioventa FROM productos";
+            $sql = "SELECT id, nombre, precioventa, precioventanew FROM productos";
             $productos = $db->GetArray($sql);
         } else {
             $query = strtoupper($query);
-            $sql = "SELECT id, nombre, precioventa FROM productos WHERE UPPER(nombre) LIKE ?";
+            $sql = "SELECT id, nombre, precioventa, precioventanew FROM productos WHERE UPPER(nombre) LIKE ?";
             $productos = $db->GetArray($sql, ["%$query%"]);
         }
 
@@ -119,7 +119,7 @@ function obtenerProveedores() {
 
 function verProducto($idProducto) {
     global $db;
-    $sqlProducto = "SELECT p.id, p.nombre, p.precioventa, p.costo, pv.id as idproveedor FROM productos as p ".
+    $sqlProducto = "SELECT p.id, p.nombre, p.precioventa, p.costo, pv.id as idproveedor, p.precioventanew FROM productos as p ".
     "LEFT JOIN proveedores as pv ON p.idproveedor = pv.id ".
     "WHERE p.id=" . $idProducto;
     $result = $db->GetArray($sqlProducto);
@@ -134,19 +134,57 @@ function editarProducto($aForm) {
     global $db;
 
     $valores = json_decode($aForm, true);
-    $query = "SELECT id, nombre, precioventa, costo, idproveedor FROM productos ".
+    $query = "SELECT id, nombre, costo, idproveedor, precioventa, precioventanew, porcentajeventa FROM productos ".
     "WHERE id=" . $valores['id'];
     $result = $db->Execute($query);
-    $registro = array(
-        'id' => $valores['id'],
-        'nombre' => $db->addQ($valores['nombre']),
-        'precioventa' => $valores['precioventa'],
-        'costo' => $valores['costo'],
-        'idproveedor' => $valores['idproveedor']
-    );
+
+    if (!$result || $result->RecordCount() === 0) {
+        return ["error" => "Producto no encontrado"];
+    }
+
+    $productoActual = $result->FetchRow();
+
+    $id         = intval($valores['id']);
+    $nombre     = $db->addQ($valores['nombre']);
+    $costo      = isset($valores['costo']) ? floatval($valores['costo']) : 0;
+    $ventaNew   = isset($valores['precioventanew']) ? floatval($valores['precioventanew']) : null;
+    $venta      = isset($valores['precioventa']) ? floatval($valores['precioventa']) : null;
+    $markup     = isset($valores['porcentajeventa']) ? floatval($valores['porcentajeventa']) : null;
+    $proveedor  = intval($valores['idproveedor']);
+
+    $registro = [
+        'id'         => $id,
+        'nombre'     => $nombre,
+        'costo'      => $costo,
+        'idproveedor'=> $proveedor
+    ];
+
+    if ($costo <= 0) {
+        if ($venta !== null) {
+            $registro['precioventa'] = $venta;
+        }
+        $registro['precioventanew'] = 0;
+        $registro['porcentajeventa'] = 0;
+    } else {
+        if ($ventaNew !== null && $ventaNew > 0 && $ventaNew != $productoActual['precioventanew']) {
+            $registro['precioventanew'] = $ventaNew;
+            $registro['porcentajeventa'] = round(($ventaNew / $costo) - 1, 4);
+        } 
+        elseif ($markup !== null && $markup != $productoActual['porcentajeventa']) {
+            $registro['porcentajeventa'] = $markup;
+            $registro['precioventanew'] = round($costo * (1 + $markup), 2);
+        } 
+        elseif ($costo != $productoActual['costo']) {
+            $registro['precioventanew'] = round($costo * (1 + $productoActual['porcentajeventa']), 2);
+            $registro['porcentajeventa'] = $productoActual['porcentajeventa'];
+        }
+    }
+
+
     if ($result && $result->RecordCount() > 0) {
         $sqlUpdate = $db->GetUpdateSQL($result, $registro);
     }
+
     $db->StartTrans();
     if (isset($sqlUpdate) && $sqlUpdate !== false) {
         $executeUpdate = $db->Execute($sqlUpdate);

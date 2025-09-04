@@ -6,7 +6,7 @@ require_once __DIR__ . '/../componentes/header.php';
     <div id="cabecera"></div>
     <div class="container mt-4">
         <div class="row justify-content-center">
-            <div class="col-lg-10 col-md-12">
+            <div class="col-lg-10 col-md-12" style="width: 100% !important;">
                 <div class="card shadow p-4">
                     <h1 class="text-center mb-4">Productos</h1>
                     <div class="table-responsive">
@@ -39,21 +39,31 @@ require_once __DIR__ . '/../componentes/header.php';
         <form id="formEditarProducto" method="dialog">
             <div class="mb-3">
                 <label for="nombre" class="form-label">Nombre:</label>
-                <input type="text" class="form-control" id="nombre" name="nombre">
+                <input type="text" class="form-control" id="nombre" name="nombre"  <?php if (!can("VERSECCIONADMIN")) echo "readonly"; ?>>
             </div>
             <div class="mb-3">
                 <label for="costo" class="form-label">Costo:</label>
                 <input type="text" class="form-control" id="costo" name="costo">
             </div>
-             <div class="mb-3" id="divPorcentajes"></div>
-            <div class="mb-3">
-                <label for="precioventa" class="form-label">Precio venta:</label>
-                <input type="text" class="form-control" id="precioventa" name="precioventa">
-            </div>
-            <div class="text-center mt-3">
-                <label for="idproveedor" class="form-label">Proveedor</label>
-                <select class="form-select" id="idproveedor" name="idproveedor"></select>
-            </div>
+            <?php if (can("VERSECCIONADMIN")): ?>
+                <div class="mb-3" id="divPorcentajes"></div>
+                <div class="mb-3" id="divVentaManual">
+                    <label for="precioventa" class="form-label">Precio venta manual:</label>
+                    <input type="text" class="form-control" id="precioventa" name="precioventa">
+                </div>
+                <div class="mb-3" id="divMarkup">
+                    <label for="porcentajeventa" class="form-label">Porcentaje de venta (decimal):</label>
+                    <input type="text" class="form-control" id="porcentajeventa" name="porcentajeventa">
+                </div>
+                <div class="mb-3" id="divVentaNew">
+                    <label for="precioventanew" class="form-label">Precio Venta Nuevo:</label>
+                    <input type="text" class="form-control" id="precioventanew" name="precioventanew">
+                </div>
+                <div class="text-center mt-3">
+                    <label for="idproveedor" class="form-label">Proveedor</label>
+                    <select class="form-select" id="idproveedor" name="idproveedor"></select>
+                </div>
+            <?php endif; ?>
             <div class="text-center mt-3">
                 <button class="btn btn-primary btn-lg w-100" type="button" id="btnGrabarProd">Guardar Cambios</button>
             </div>

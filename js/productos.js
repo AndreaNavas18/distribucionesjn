@@ -30,13 +30,17 @@ async function verProductos() {
     if (data.productos && Array.isArray(data.productos)) {
         tbody.innerHTML = data.productos.map(producto => {
             const costoProducto = parseFloat(producto.costo);
+            const precioBase = costoProducto > 0 
+                ? parseFloat(producto.precioventanew) 
+                : parseFloat(producto.precioventa);
+
             return `
                 <tr data-id="${producto.id}">
                     <td>${producto.id}</td>
                     <td>${producto.nombre}</td>
-                    <td>${formatearMoneda(producto.precioventa)}</td>
+                    <td>${formatearMoneda(precioBase)}</td>
                     <td>${formatearMoneda(costoProducto)}</td>
-                    <td>${formatearMoneda(producto.precioventa - costoProducto)}</td>
+                    <td>${formatearMoneda(precioBase - costoProducto)}</td>
                     <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,25))}</td>
                     <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,15))}</td>
                     <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,10))}</td>
@@ -56,12 +60,12 @@ async function verProductos() {
 function changeProductos() {
     const dialog = document.getElementById("dialogProducto");
     const btnGuardar = document.getElementById("btnGrabarProd");
-    const botones = document.querySelectorAll(".btnEditarProducto");
     const cerrarDialog = document.querySelector("#btnCloseDialog");
     const inputCosto = document.getElementById("costo");
+    const inputVentaNew = document.getElementById("precioventanew");
+    const inputMarkup = document.getElementById("porcentajeventa");
     const inputVenta = document.getElementById("precioventa");
     const selectProveedor = document.getElementById("idproveedor");
-    const divPorcentajes = document.getElementById("divPorcentajes");
 
     [inputCosto, inputVenta].forEach(input => {
         input.addEventListener("input", () => formatearInput(input));
@@ -72,7 +76,7 @@ function changeProductos() {
         const btn = e.target.closest(".btnEditarProducto");
         if (!btn) return;
 
-        const id = btn.getAttribute("data-id");
+        const id = btn.dataset.id; 
         idProductoEditando = id;
 
         dialog.showModal();
@@ -83,7 +87,7 @@ function changeProductos() {
             console.error("Error:", data.error);
         } else {
             const productoEscogido = data.producto;
-            const campos = ["id", "nombre", "precioventa", "costo", "idproveedor"];
+            const campos = ["id", "nombre", "precioventanew", "porcentajeventa", "costo", "idproveedor", "precioventa"];
             campos.forEach(campo => {
                 const input = document.getElementById(campo);
                 if (input) {
@@ -94,12 +98,24 @@ function changeProductos() {
                 }
             });
 
-            const select = document.getElementById("idproveedor");
-            if (select) {
-                select.value = productoEscogido.idproveedor;
+            if (selectProveedor) {
+                selectProveedor.value = productoEscogido.idproveedor;
             }
 
-            actualizarPorcentajes(parseFloat(productoEscogido.costo));
+            if (parseFloat(productoEscogido.costo) > 0) {
+                // Tiene costo → usar estructura nueva
+                const divVentaNew = document.getElementById("divVentaNew");
+                const divMarkup = document.getElementById("divMarkup");
+                const divVentaManual = document.getElementById("divVentaManual");
+                divVentaManual.style.display = "none";
+                divVentaNew.style.display = "flex";
+                divMarkup.style.display = "flex";
+                actualizarPorcentajes(parseFloat(productoEscogido.costo));
+            } else {
+                divVentaManual.style.display = "flex";
+                divVentaNew.style.display = "none";
+                divMarkup.style.display = "none";
+            }
         }
     });
 
@@ -111,18 +127,22 @@ function changeProductos() {
         formatearInput(inputCosto);
         formatearInput(inputVenta);
         const formEditar = document.getElementById("formEditarProducto");
-        const nombreProveedor = selectProveedor.options[selectProveedor.selectedIndex].text;
-        
-        const precioVenta = parseFloat(inputVenta.getAttribute("data-real"));
-        const costo = parseFloat(inputCosto.getAttribute("data-real"));
+        const nombreProveedor = selectProveedor.options[selectProveedor.selectedIndex].text || "";
+        const costo = parseFloat(inputCosto.dataset.real);
 
         const producto = {
             id: idProductoEditando,
             nombre: document.getElementById("nombre").value,
-            precioventa: precioVenta,
             costo: costo,
-            idproveedor: selectProveedor.value
+            idproveedor: selectProveedor ? selectProveedor.value : null
         };
+
+        if (costo > 0) {
+            producto.precioventanew = parseFloat(inputVentaNew.dataset.real);
+            producto.porcentajeventa = parseFloat(inputMarkup.value);
+        } else {
+            producto.precioventa = parseFloat(inputVenta.dataset.real);
+        }
 
         console.log("Producto a editar:", producto);
     
@@ -138,12 +158,16 @@ function changeProductos() {
     
         const fila = $(`#tablaProductos tbody tr[data-id="${producto.id}"]`);
         if (fila.length) {
+            const precioFinal = costo > 0 
+                ? producto.precioventanew 
+                : producto.precioventa;
+
             tablaProductosDT.row(fila).data([
                 producto.id,
                 producto.nombre,
-                formatearMoneda(precioVenta),
+                formatearMoneda(precioFinal),
                 formatearMoneda(costo),
-                formatearMoneda(precioVenta - costo),
+                formatearMoneda(precioFinal - costo),
                 formatearMoneda(costo + calcularPorcentaje(costo, 25)),
                 formatearMoneda(costo + calcularPorcentaje(costo, 15)),
                 formatearMoneda(costo + calcularPorcentaje(costo, 10)),
@@ -162,6 +186,7 @@ function changeProductos() {
             showConfirmButton: false
         });
         console.log("Formulario antes de formatear:", document.getElementById("formEditarProducto").innerHTML);
+
         formEditar.reset();
         document.getElementById("costo").removeAttribute("data-real");
         document.getElementById("precioventa").removeAttribute("data-real");
@@ -170,8 +195,12 @@ function changeProductos() {
     });
 
     inputCosto.addEventListener("input", function () {
-        const costo = parseFloat(inputCosto.value.replace(/[^0-9.]/g, '').replace(",", "."));
-        actualizarPorcentajes(costo);
+        const raw = inputCosto.value.replace(/[^\d]/g, "");
+        const costo = parseFloat(raw);
+        console.log("Valor crudo:", inputCosto.value, " → limpio:", raw, " → parseado:", costo);
+        if (!isNaN(costo) && costo > 0) {
+            actualizarPorcentajes(costo);
+        }
     });
 }
 
