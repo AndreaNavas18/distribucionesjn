@@ -1,7 +1,6 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../database.php';
-require_once __DIR__ . '/../utils/pdf_utils.php';
 
 use Mpdf\Mpdf;
 
@@ -79,31 +78,16 @@ foreach ($ids as $idPedido) {
     $oidUnico = uniqid();
     $pdfFileName = "{$fechaHoy}_{$nombreCliente}_{$oidUnico}.pdf";
 
-    // Detectar entorno (local o producción)
-    $isProduction = ($_ENV['APP_ENV'] ?? 'local') === 'production';
-
-    if ($isProduction) {
-        // Guardar temporalmente
-        $tempPath = sys_get_temp_dir() . '/' . $pdfFileName;
-        $mpdf->Output($tempPath, "F");
-
-        // Subir a Supabase
-        $pdfUrl = subirPDFaSupabase($tempPath, $pdfFileName);
-        $pdfUrls[] = $pdfUrl ?: "ERROR_SUBIENDO_PDF";
-
-        // Eliminar archivo temporal
-        @unlink($tempPath);
-    } else {
-        // Guardar en carpeta local
-        $pdfDir = __DIR__ . '/../pdfs';
-        if (!is_dir($pdfDir)) {
-            mkdir($pdfDir, 0777, true);
-        }
-        $pdfPath = $pdfDir . '/' . $pdfFileName;
-        $mpdf->Output($pdfPath, "F");
-
-        $pdfUrls[] = "/distribucionesjn/pdfs/" . $pdfFileName;
+    $pdfDir = __DIR__ . '/../public/pdfs';
+    if (!is_dir($pdfDir)) {
+        mkdir($pdfDir, 0777, true);
     }
+    $pdfPath = $pdfDir . '/' . $pdfFileName;
+    $mpdf->Output($pdfPath, "F");
+
+    // Construir URL pública
+    $baseUrl = $_ENV['BASE_URL'] ?? '';
+    $pdfUrls[] = rtrim($baseUrl, '/') . '/public/pdfs/' . $pdfFileName;
 }
 
 echo json_encode([

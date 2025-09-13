@@ -1,7 +1,6 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../database.php';
-require_once __DIR__ . '/../utils/pdf_utils.php';
 
 use Mpdf\Mpdf;
 
@@ -89,27 +88,21 @@ if ($incluirTotal) {
 $html .= '</tbody></table>';
 
 $mpdf->WriteHTML($html);
+
+$pdfDir = __DIR__ . '/../public/pdfs';
+if (!is_dir($pdfDir)) {
+    mkdir($pdfDir, 0777, true);
+}
+
 $oidUnico = uniqid();
 $pdfFileName = "ordendecompra_" . date("YmdHis") . "_" . $oidUnico . ".pdf";
-$isProduction = ($_ENV['APP_ENV'] ?? 'local') === 'production';
+$pdfPath = $pdfDir . '/' . $pdfFileName;
 
-if ($isProduction) {
-    $tempPath = sys_get_temp_dir() . '/' . $pdfFileName;
-    $mpdf->Output($tempPath, "F");
+$mpdf->Output($pdfPath, "F");
 
-    $pdfUrl = subirPDFaSupabase($tempPath, $pdfFileName) ?: "ERROR_SUBIENDO_PDF";
-
-    @unlink($tempPath);
-} else {
-    $pdfDir = __DIR__ . '/../pdfs';
-    if (!is_dir($pdfDir)) {
-        mkdir($pdfDir, 0777, true);
-    }
-    $pdfPath = $pdfDir . '/' . $pdfFileName;
-    $mpdf->Output($pdfPath, "F");
-
-    $pdfUrl[] = "/distribucionesjn/pdfs/" . $pdfFileName;
-}
+// Construir URL pública
+$baseUrl = $_ENV['BASE_URL'] ?? '';
+$pdfUrl = rtrim($baseUrl, '/') . '/public/pdfs/' . $pdfFileName;
 
 echo json_encode([
     "success" => true,
