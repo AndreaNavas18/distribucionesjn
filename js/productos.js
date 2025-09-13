@@ -26,6 +26,7 @@ async function verProductos() {
     tbody.innerHTML = `<tr><td colspan="10" class="text-center">Cargando productos...</td></tr>`;
 
     const data = await pet("controladores/productos.php", {funcion: "obtenerproductos"});
+    console.log(data);
 
     if (data.productos && Array.isArray(data.productos)) {
         tbody.innerHTML = data.productos.map(producto => {
@@ -39,6 +40,7 @@ async function verProductos() {
                     <td>${producto.id}</td>
                     <td>${producto.nombre}</td>
                     <td>${formatearMoneda(precioBase)}</td>
+                    <td>${formatearMoneda(producto.precioventa)}</td>
                     <td>${formatearMoneda(costoProducto)}</td>
                     <td>${formatearMoneda(precioBase - costoProducto)}</td>
                     <td>${formatearMoneda(costoProducto + calcularPorcentaje(costoProducto,25))}</td>
@@ -166,6 +168,7 @@ function changeProductos() {
                 producto.id,
                 producto.nombre,
                 formatearMoneda(precioFinal),
+                formatearMoneda(producto.precioventa),
                 formatearMoneda(costo),
                 formatearMoneda(precioFinal - costo),
                 formatearMoneda(costo + calcularPorcentaje(costo, 25)),

@@ -15,6 +15,7 @@ require_once __DIR__ . '/../componentes/header.php';
                                 <tr>
                                     <th>Código</th>
                                     <th>Nombre</th>
+                                    <th>Precio Venta New</th>
                                     <th>Precio Venta</th>
                                     <th>Costo</th>
                                     <th>Utilidad</th>

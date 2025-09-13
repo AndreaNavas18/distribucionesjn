@@ -1,6 +1,10 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/../utils/pdf_utils.php';
+
 use Mpdf\Mpdf;
+
 header("Content-Type: application/json");
 
 $inputJSON = file_get_contents("php://input");
@@ -45,8 +49,6 @@ $logoBase64 = base64_encode(file_get_contents($logoPath));
 $logoHtml = '<div style="text-align: center;"><img src="data:image/png;base64,' . $logoBase64 . '" width="100px"></div>';
 
 $mpdf->SetHTMLHeader($logoHtml);
-
-
 $mpdf->WriteHTML("<h1>Orden de Compra</h1>");
 
 $html = '<table class="tabla">
@@ -87,17 +89,27 @@ if ($incluirTotal) {
 $html .= '</tbody></table>';
 
 $mpdf->WriteHTML($html);
-$pdfDir = __DIR__ . '/../public/pdfs';
-if (!is_dir($pdfDir)) {
-    mkdir($pdfDir, 0777, true);
+$oidUnico = uniqid();
+$pdfFileName = "ordendecompra_" . date("YmdHis") . "_" . $oidUnico . ".pdf";
+$isProduction = ($_ENV['APP_ENV'] ?? 'local') === 'production';
+
+if ($isProduction) {
+    $tempPath = sys_get_temp_dir() . '/' . $pdfFileName;
+    $mpdf->Output($tempPath, "F");
+
+    $pdfUrl = subirPDFaSupabase($tempPath, $pdfFileName) ?: "ERROR_SUBIENDO_PDF";
+
+    @unlink($tempPath);
+} else {
+    $pdfDir = __DIR__ . '/../pdfs';
+    if (!is_dir($pdfDir)) {
+        mkdir($pdfDir, 0777, true);
+    }
+    $pdfPath = $pdfDir . '/' . $pdfFileName;
+    $mpdf->Output($pdfPath, "F");
+
+    $pdfUrl[] = "/distribucionesjn/pdfs/" . $pdfFileName;
 }
-
-$pdfFileName = "ordendecompra_" . date("YmdHis") . ".pdf";
-$pdfFilePath = $pdfDir . '/' . $pdfFileName;
-$mpdf->Output($pdfFilePath, "F");
-
-$baseUrl = $_ENV['BASE_URL'] ?? '';
-$pdfUrl = rtrim($baseUrl, '/') . '/public/pdfs/' . $pdfFileName;
 
 echo json_encode([
     "success" => true,

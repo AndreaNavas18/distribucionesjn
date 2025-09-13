@@ -1,8 +1,8 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/../utils/pdf_utils.php';
 
-use GuzzleHttp\Client;
 use Mpdf\Mpdf;
 
 header("Content-Type: application/json");
@@ -89,11 +89,7 @@ foreach ($ids as $idPedido) {
 
         // Subir a Supabase
         $pdfUrl = subirPDFaSupabase($tempPath, $pdfFileName);
-        if ($pdfUrl) {
-            $pdfUrls[] = $pdfUrl;
-        } else {
-            $pdfUrls[] = "ERROR_SUBIENDO_PDF";
-        }
+        $pdfUrls[] = $pdfUrl ?: "ERROR_SUBIENDO_PDF";
 
         // Eliminar archivo temporal
         @unlink($tempPath);
@@ -115,67 +111,6 @@ echo json_encode([
     "pdfUrls" => $pdfUrls
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 exit;
-
-function subirPDFaSupabase($pdfPath, $pdfFileName) {
-    $supabaseUrl = $_ENV['SUPABASE_URL'];
-    $supabaseAnonKey = $_ENV['SUPABASE_ANON_KEY'];
-    $bucketName = 'pdfs';
-
-    error_log("📄 Iniciando subida de PDF a Supabase");
-    error_log("Ruta PDF: $pdfPath");
-    error_log("Nombre en Supabase: $pdfFileName");
-    error_log("Supabase URL: $supabaseUrl");
-    error_log("Bucket: $bucketName");
-
-    if (!file_exists($pdfPath)) {
-        error_log("❌ El archivo PDF no existe en la ruta especificada");
-        return null;
-    }
-
-    $fileSize = filesize($pdfPath);
-    error_log("Tamaño del PDF: {$fileSize} bytes");
-
-    $client = new Client();
-
-    try {
-        $bodyContent = file_get_contents($pdfPath);
-        if ($bodyContent === false) {
-            error_log("❌ No se pudo leer el archivo PDF");
-            return null;
-        }
-
-        error_log("Enviando solicitud POST a: {$supabaseUrl}/storage/v1/object/{$bucketName}/{$pdfFileName}");
-
-        $response = $client->request('POST', "$supabaseUrl/storage/v1/object/$bucketName/$pdfFileName", [
-            'headers' => [
-                'apikey' => $supabaseAnonKey,
-                'Authorization' => "Bearer $supabaseAnonKey",
-                'Content-Type' => 'application/pdf',
-                'x-upsert' => 'true'
-            ],
-            'body' => $bodyContent
-        ]);
-
-        $statusCode = $response->getStatusCode();
-        error_log("Código de respuesta HTTP: $statusCode");
-
-        $responseBody = (string) $response->getBody();
-        error_log("Cuerpo de respuesta: $responseBody");
-
-        if (in_array($response->getStatusCode(), [200, 201])) {
-            $publicUrl = "$supabaseUrl/storage/v1/object/public/$bucketName/$pdfFileName";
-            error_log("✅ Subida exitosa. URL pública: $publicUrl");
-            return $publicUrl;
-        }
-
-        error_log("❌ Falló la subida. Código HTTP: $statusCode");
-
-        return null;
-    } catch (\Exception $e) {
-        error_log("Error subiendo PDF a Supabase: " . $e->getMessage());
-        return null;
-    }
-}
 
 function obtenerPedidoPorId($idPedido) {
     global $db;
