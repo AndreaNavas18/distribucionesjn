@@ -1,4 +1,4 @@
- <?php
+<?php
 $tituloPagina = "Gestión de Permisos";
 require_once __DIR__ . '/../componentes/header.php';
 ?>
