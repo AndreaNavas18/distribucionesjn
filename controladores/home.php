@@ -17,7 +17,8 @@ function obtenerProductos() {
     global $db;
 
     try {
-        $sql = "SELECT codigo, nombre, precioventa, costo FROM productos";
+        $sql = "SELECT codigo, nombre, CASE WHEN costo > 0 AND precioventanew > 0 THEN precioventanew ELSE precioventa END AS precioventa, ".
+        "costo FROM productos";
         $productos = $db->GetArray($sql);
 
         if (count($productos) > 0) {

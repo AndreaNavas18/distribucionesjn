@@ -69,9 +69,11 @@ function changeProductos() {
     const inputVenta = document.getElementById("precioventa");
     const selectProveedor = document.getElementById("idproveedor");
 
-    [inputCosto, inputVenta].forEach(input => {
-        input.addEventListener("input", () => formatearInput(input));
-        input.addEventListener("blur", () => formatearInput(input));
+    [inputCosto, inputVenta, inputVentaNew].forEach(input => {
+        if (input) {
+            input.addEventListener("input", () => formatearInput(input));
+            input.addEventListener("blur", () => formatearInput(input));
+        }
     });
 
     document.querySelector("#tablaProductos tbody").addEventListener("click", async (e) => {
@@ -94,7 +96,7 @@ function changeProductos() {
                 const input = document.getElementById(campo);
                 if (input) {
                     input.value = productoEscogido[campo];
-                    if (campo === "costo") {
+                    if (campo === "costo" || campo === "precioventa" || campo === "precioventanew") {
                         input.setAttribute("data-real", productoEscogido[campo]);
                     }
                 }
@@ -126,11 +128,14 @@ function changeProductos() {
     });
     
     btnGuardar.addEventListener("click", async () => {
+        // Formatear todos los inputs relevantes
         formatearInput(inputCosto);
         formatearInput(inputVenta);
+        if (inputVentaNew) formatearInput(inputVentaNew);
+        
         const formEditar = document.getElementById("formEditarProducto");
         const nombreProveedor = selectProveedor.options[selectProveedor.selectedIndex].text || "";
-        const costo = parseFloat(inputCosto.dataset.real);
+        const costo = parseFloat(inputCosto.dataset.real) || 0;
 
         const producto = {
             id: idProductoEditando,
@@ -140,10 +145,13 @@ function changeProductos() {
         };
 
         if (costo > 0) {
-            producto.precioventanew = parseFloat(inputVentaNew.dataset.real);
-            producto.porcentajeventa = parseFloat(inputMarkup.value);
+            producto.precioventanew = parseFloat(inputVentaNew.dataset.real) || 0;
+            producto.porcentajeventa = parseFloat(inputMarkup.value) || 0;
+            // Mantener el precio de venta original si existe
+            producto.precioventa = parseFloat(inputVenta.dataset.real) || 0;
         } else {
-            producto.precioventa = parseFloat(inputVenta.dataset.real);
+            producto.precioventa = parseFloat(inputVenta.dataset.real) || 0;
+            producto.precioventanew = 0;
         }
 
         console.log("Producto a editar:", producto);
@@ -160,17 +168,30 @@ function changeProductos() {
     
         const fila = $(`#tablaProductos tbody tr[data-id="${producto.id}"]`);
         if (fila.length) {
-            const precioFinal = costo > 0 
-                ? producto.precioventanew 
-                : producto.precioventa;
+            // Determinar qué precios mostrar según la lógica del producto
+            let precioVentaNew = 0;
+            let precioVentaOriginal = 0;
+            
+            if (costo > 0) {
+                // Producto con costo - calcular precioventanew basado en costo y markup
+                const markup = producto.porcentajeventa || 0;
+                precioVentaNew = costo * (1 + markup);
+                precioVentaOriginal = producto.precioventa || 0;
+            } else {
+                // Producto sin costo - usar precio manual
+                precioVentaNew = producto.precioventa || 0;
+                precioVentaOriginal = producto.precioventa || 0;
+            }
+
+            const utilidad = precioVentaNew - costo;
 
             tablaProductosDT.row(fila).data([
                 producto.id,
                 producto.nombre,
-                formatearMoneda(precioFinal),
-                formatearMoneda(producto.precioventa),
+                formatearMoneda(precioVentaNew),
+                formatearMoneda(precioVentaOriginal),
                 formatearMoneda(costo),
-                formatearMoneda(precioFinal - costo),
+                formatearMoneda(utilidad),
                 formatearMoneda(costo + calcularPorcentaje(costo, 25)),
                 formatearMoneda(costo + calcularPorcentaje(costo, 15)),
                 formatearMoneda(costo + calcularPorcentaje(costo, 10)),
@@ -193,6 +214,9 @@ function changeProductos() {
         formEditar.reset();
         document.getElementById("costo").removeAttribute("data-real");
         document.getElementById("precioventa").removeAttribute("data-real");
+        if (document.getElementById("precioventanew")) {
+            document.getElementById("precioventanew").removeAttribute("data-real");
+        }
         console.log("Formulario después de formatear:", document.getElementById("formEditarProducto").innerHTML);
         dialog.close();
     });

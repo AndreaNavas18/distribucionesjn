@@ -180,7 +180,6 @@ function editarProducto($aForm) {
         }
     }
 
-
     if ($result && $result->RecordCount() > 0) {
         $sqlUpdate = $db->GetUpdateSQL($result, $registro);
     }

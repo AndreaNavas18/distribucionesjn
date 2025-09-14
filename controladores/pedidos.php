@@ -284,7 +284,8 @@ function verPedido($idPedido) {
     $pedido = $db->GetRow($sqlPedido);
 
     $sqlDetalle = "SELECT dp.id, dp.idproducto, dp.cantidad, dp.observacionproducto, dp.estado, ".
-    "dp.preciosugerido, pr.nombre, pr.precioventa, dp.faltante, dp.noorden FROM detallepedidosfacturas dp ".
+    "dp.preciosugerido, pr.nombre, CASE WHEN pr.costo > 0 AND pr.precioventanew > 0 THEN pr.precioventanew ELSE pr.precioventa ".
+    "END AS precioventa, dp.faltante, dp.noorden FROM detallepedidosfacturas dp ".
     "LEFT JOIN productos pr ON dp.idproducto = pr.id ".
     "WHERE dp.idpedido =" . $idPedido . " ORDER BY dp.idproducto";
     $detallepedido = $db->GetArray($sqlDetalle);

@@ -33,7 +33,7 @@ function inicial() {
                 resultadosDiv.innerHTML = data.productos.map(prod => `
                     <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         <span>${prod.nombre}</span>
-                        <span class="badge bg-primary rounded-pill">${formatearMoneda(prod.precioventa)}</span>
+                        <span class="badge bg-primary rounded-pill">${formatearMoneda(prod.precioventanew ?? prod.precioventa)}</span>
                     </a>
                 `).join('');
                 resultadosDiv.style.display = "block";

@@ -108,7 +108,11 @@ function obtenerPedidoPorId($idPedido) {
 function obtenerDetallesPedido($idPedido) {
     global $db;
     $sql = "SELECT dp.*, pr.nombre AS producto_nombre, 
-                   CASE WHEN dp.preciosugerido > 0 THEN dp.preciosugerido ELSE pr.precioventa END AS precio_factura,
+                   CASE 
+                       WHEN dp.preciosugerido > 0 THEN dp.preciosugerido 
+                       WHEN pr.costo > 0 AND pr.precioventanew > 0 THEN pr.precioventanew 
+                       ELSE pr.precioventa 
+                   END AS precio_factura,
                    (dp.cantidad - COALESCE(dp.faltante, 0)) AS cantidad_facturada
             FROM detallepedidosfacturas dp
             LEFT JOIN productos pr ON dp.idproducto = pr.id
