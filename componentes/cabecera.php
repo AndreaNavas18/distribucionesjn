@@ -24,5 +24,6 @@
         <a href="../vistas/verProductos.php" class="list-group-item">Ver Productos</a>
         <a href="../vistas/verClientes.php" class="list-group-item">Ver Clientes</a>
         <a href="../vistas/verUsuarios.php" class="list-group-item">Ver Usuarios</a>
+        <a href="../vistas/permisos.php" class="list-group-item">Permisos</a>
     </ul>
 </div>

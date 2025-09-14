@@ -119,7 +119,7 @@ function obtenerProveedores() {
 
 function verProducto($idProducto) {
     global $db;
-    $sqlProducto = "SELECT p.id, p.nombre, p.precioventa, p.costo, pv.id as idproveedor, p.precioventanew FROM productos as p ".
+    $sqlProducto = "SELECT p.id, p.nombre, p.precioventa, p.costo, pv.id as idproveedor, p.precioventanew, porcentajeventa FROM productos as p ".
     "LEFT JOIN proveedores as pv ON p.idproveedor = pv.id ".
     "WHERE p.id=" . $idProducto;
     $result = $db->GetArray($sqlProducto);

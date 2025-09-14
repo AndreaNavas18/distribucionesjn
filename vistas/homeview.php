@@ -65,6 +65,7 @@ require_once __DIR__ . '/../config.php';
             <a href="./crearProducto.php">Crear Producto</a>
             <a href="./crearCliente.php">Crear Cliente</a>
             <a href="./crearUsuario.php">Crear Usuario</a>
+            <a href="./permisos.php">Permisos</a>
         </section>
     <?php endif; ?>
 
